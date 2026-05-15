@@ -1,0 +1,47 @@
+import '../../theme/app_theme.dart';
+import '../app_strings.dart';
+
+final AppStrings jaStrings = AppStrings(
+  menuFeed: 'フィード',
+  menuSettings: '設定',
+  signalReader: 'シグナルリーダー',
+  channel: 'チャンネル',
+  techNewsFilter: '主要企業とメディア',
+  indieDevFilter: 'インディー開発者',
+  itemsCount: (value) => '$value 件',
+  searchPlaceholder: '企業、ローンチ、創業者を検索...',
+  backToFeed: '<- フィード',
+  openSourceLink: '元記事を開く',
+  unableToOpenSourceLink: '元記事リンクを開けません。',
+  settingsTitle: '設定',
+  settingsDescription: 'アプリを TechBrief サーバーに向けて、最新記事をローカル SQLite に同期します。',
+  apiBaseUrl: 'API ベース URL',
+  apiBaseUrlHint: 'http://127.0.0.1:4310',
+  apiBaseUrlHelp:
+      'Android エミュレーターでは通常 10.0.2.2 が必要です。iOS シミュレーターとデスクトップでは 127.0.0.1 を使えます。',
+  saveServer: 'サーバーを保存',
+  syncNow: '今すぐ同期',
+  syncingNow: '同期中…',
+  savedServerAddress: 'サーバーアドレスを保存しました。',
+  syncingLatestArticles: '最新記事を同期中…',
+  syncedArticles: (count, baseUrl) => '$baseUrl から $count 件の記事を同期しました。',
+  usingLocalCache: (error) => 'ローカルキャッシュを使用中です。$error',
+  themeTitle: 'テーマ',
+  themeDescription: '現在の見た目を既定に保つか、追加のビジュアル方向に切り替えます。',
+  active: '適用中',
+  apply: '適用',
+  minutesAgo: (value) => '$value 分前',
+  hoursAgo: (value) => '$value 時間前',
+  daysAgo: (value) => '$value 日前',
+  justNow: 'たった今',
+  themeLabels: const <AppThemeId, String>{
+    AppThemeId.currentTheme: 'ディープシグナル',
+    AppThemeId.editorialDawn: 'モーニングエディション',
+    AppThemeId.auroraGlass: 'オーロラ・グラス',
+  },
+  themeSummaries: const <AppThemeId, String>{
+    AppThemeId.currentTheme: 'シアンのハイライトと明快なレイヤー感を備えた、より明るい深海ブルーの読書画面です。',
+    AppThemeId.editorialDawn: '紙面のような温かい明るさに、クリーンなブルーアクセントを添えたワークスペースです。',
+    AppThemeId.auroraGlass: 'ティール寄りのガラス調で、柔らかな奥行きと軽い透明感を持つ画面です。',
+  },
+);

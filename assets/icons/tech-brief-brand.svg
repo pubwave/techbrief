@@ -1,0 +1,31 @@
+<svg width="520" height="120" viewBox="0 0 520 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tb-brand-bg" x1="12" y1="12" x2="102" y2="108" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#09111B"/>
+      <stop offset="0.54" stop-color="#102238"/>
+      <stop offset="1" stop-color="#189CE2"/>
+    </linearGradient>
+    <linearGradient id="tb-brand-line-a" x1="30" y1="44" x2="72" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D8F8FF"/>
+      <stop offset="1" stop-color="#63D6FF"/>
+    </linearGradient>
+    <linearGradient id="tb-brand-line-b" x1="30" y1="60" x2="78" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#B7EFFF"/>
+      <stop offset="1" stop-color="#34C1FF"/>
+    </linearGradient>
+    <linearGradient id="tb-brand-line-c" x1="30" y1="76" x2="66" y2="76" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8FE5FF"/>
+      <stop offset="1" stop-color="#169FE4"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="8" y="8" width="88" height="88" rx="22" fill="url(#tb-brand-bg)"/>
+  <path d="M30 44H72" stroke="url(#tb-brand-line-a)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M30 60H78" stroke="url(#tb-brand-line-b)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M30 76H66" stroke="url(#tb-brand-line-c)" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="78" cy="44" r="3.5" fill="#D8F8FF"/>
+  <circle cx="84" cy="60" r="3.5" fill="#7FDBFF"/>
+  <circle cx="69" cy="76" r="3.5" fill="#2CBEFF"/>
+
+  <text x="124" y="67" fill="#EAF6FF" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="800" letter-spacing="-0.03em">Tech Brief</text>
+</svg>

@@ -1,0 +1,22 @@
+{
+  "name": "@techbrief/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@techbrief/feed": "0.1.0",
+    "@techbrief/ingest": "0.1.0",
+    "@techbrief/pipeline": "0.1.0",
+    "@techbrief/runtime": "0.1.0",
+    "@techbrief/shared": "0.1.0",
+    "better-sqlite3": "^11.10.0"
+  }
+}

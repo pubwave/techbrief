@@ -1,0 +1,47 @@
+import '../../theme/app_theme.dart';
+import '../app_strings.dart';
+
+final AppStrings koStrings = AppStrings(
+  menuFeed: '피드',
+  menuSettings: '설정',
+  signalReader: '시그널 리더',
+  channel: '채널',
+  techNewsFilter: '주요 기업과 미디어',
+  indieDevFilter: '인디 개발자',
+  itemsCount: (value) => '$value개',
+  searchPlaceholder: '회사, 출시, 창업자를 검색...',
+  backToFeed: '<- 피드',
+  openSourceLink: '원문 링크 열기',
+  unableToOpenSourceLink: '원문 링크를 열 수 없습니다.',
+  settingsTitle: '설정',
+  settingsDescription: '앱이 TechBrief 서버를 가리키도록 설정한 뒤 최신 글을 로컬 SQLite로 동기화하세요.',
+  apiBaseUrl: 'API 기본 URL',
+  apiBaseUrlHint: 'http://127.0.0.1:4310',
+  apiBaseUrlHelp:
+      'Android 에뮬레이터는 보통 10.0.2.2를 사용합니다. iOS 시뮬레이터와 데스크톱은 127.0.0.1을 사용할 수 있습니다.',
+  saveServer: '서버 저장',
+  syncNow: '지금 동기화',
+  syncingNow: '동기화 중…',
+  savedServerAddress: '서버 주소를 저장했습니다.',
+  syncingLatestArticles: '최신 글을 동기화하는 중…',
+  syncedArticles: (count, baseUrl) => '$baseUrl 에서 글 $count개를 동기화했습니다.',
+  usingLocalCache: (error) => '로컬 캐시를 사용 중입니다. $error',
+  themeTitle: '테마',
+  themeDescription: '현재 모양을 기본으로 유지하거나 다른 시각 방향으로 전환합니다.',
+  active: '사용 중',
+  apply: '적용',
+  minutesAgo: (value) => '$value분 전',
+  hoursAgo: (value) => '$value시간 전',
+  daysAgo: (value) => '$value일 전',
+  justNow: '방금 전',
+  themeLabels: const <AppThemeId, String>{
+    AppThemeId.currentTheme: '딥 시그널',
+    AppThemeId.editorialDawn: '모닝 에디션',
+    AppThemeId.auroraGlass: '오로라 글래스',
+  },
+  themeSummaries: const <AppThemeId, String>{
+    AppThemeId.currentTheme: '시안 하이라이트와 더 선명한 레이어를 갖춘 밝은 딥블루 리딩 화면입니다.',
+    AppThemeId.editorialDawn: '종이 같은 따뜻한 밝기 위에 깔끔한 블루 포인트를 얹은 작업 화면입니다.',
+    AppThemeId.auroraGlass: '청록 계열 유리 질감에 더 부드러운 깊이와 투명감을 더한 화면입니다.',
+  },
+);

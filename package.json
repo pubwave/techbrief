@@ -1,0 +1,36 @@
+{
+  "name": "techbrief-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Open-source multilingual tech news and indie developer digest product.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @techbrief/shared && npm run build -w @techbrief/feed-rules && npm run build -w @techbrief/ingest && npm run build -w @techbrief/runtime && npm run build -w @techbrief/converter && npm run build -w @techbrief/ai && npm run build -w @techbrief/pipeline && npm run build -w @techbrief/feed && npm run build -w @techbrief/scheduler && npm run build -w techbrief && npm run build -w @techbrief/server && npm run build -w @techbrief/web",
+    "check": "npm run check --workspaces",
+    "dev:server": "npm run dev -w @techbrief/server",
+    "dev:web": "npm run dev -w @techbrief/web",
+    "dev:cli": "npm run dev -w techbrief",
+    "pack:cli": "npm run build -w techbrief && npm_config_cache=/tmp/techbrief-npm-cache npm pack -w techbrief --pack-destination /tmp/techbrief-pack",
+    "pack:cli:dry": "npm run build -w techbrief && npm_config_cache=/tmp/techbrief-npm-cache npm pack --dry-run -w techbrief",
+    "docker:up": "docker compose -f infra/docker-compose.yml up -d --build",
+    "docker:down": "docker compose -f infra/docker-compose.yml down",
+    "docker:logs": "docker compose -f infra/docker-compose.yml logs -f"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "overrides": {
+    "ink": {
+      "@types/react": "18.3.28",
+      "react": "18.3.1"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3"
+  }
+}

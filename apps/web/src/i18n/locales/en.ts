@@ -1,0 +1,60 @@
+import type { LocaleMessages } from "../types";
+
+const count = (prefix: string, suffix: string) => (value: number) => `${value} ${prefix}${value === 1 ? "" : suffix}`;
+
+export const en: LocaleMessages = {
+  menu: "Tech Brief",
+  home: "Home",
+  settings: "Settings",
+  signalReader: "Signal reader",
+  channel: "Channel",
+  allFilter: "All",
+  techNewsFilter: "Tech Media",
+  indieDevFilter: "Indie Developers",
+  scanQueue: "Scan Queue",
+  scanQueueHint: "Use J / K to move, Enter to focus",
+  itemsCount: count("item", "s"),
+  sortHint: "A curated stream that keeps updating",
+  searchPlaceholder: "Search articles, sources...",
+  emptyFeed: "This list is empty.",
+  emptySearchResults: "No matching articles found.",
+  selectArticle: "Select an article to read.",
+  backToList: "Back to list",
+  detailReader: "Detail Reader",
+  detailContinueToNextArticle: "Open next article",
+  previousArticleLabel: "Previous",
+  nextArticleLabel: "Next",
+  expand: "Expand",
+  highCredibility: "High credibility",
+  openSourceLink: "Open source link",
+  loading: "Loading…",
+  loadingMore: "Loading more…",
+  loadFeedError: "Unable to load feed.",
+  workspaceSettings: "Workspace settings",
+  workspaceSettingsDescription: "This panel is reserved for source sync, server address, and reading preferences.",
+  feedSync: "Feed sync",
+  feedSyncDescription: "Connect the web client to your TechBrief server and manage refresh behavior.",
+  readingPreferences: "Reading preferences",
+  readingPreferencesDescription: "Control detail layout, density, and future translation behavior from one place.",
+  tweaksPanelTitle: "TWEAKS",
+  cardStyleLabel: "List card style",
+  cardStyleCompact: "Compact",
+  cardStyleComfortable: "Comfortable",
+  cardStyleMagazine: "Magazine",
+  readingFontSizeLabel: "Reading font size",
+  listWidthLabel: "List width",
+  theme: "Theme",
+  themeDescription: "Keep the current look as default, or switch to one of the additional visual directions.",
+  active: "Active",
+  apply: "Apply",
+  themeLabels: {
+    "current-theme": "Deep Signal",
+    "editorial-dawn": "Morning Edition",
+    "aurora-glass": "Aurora Glass"
+  },
+  themeSummaries: {
+    "current-theme": "A brighter deep-sea reading surface with cyan highlights and clearer layering.",
+    "editorial-dawn": "A warm paper-toned workspace with clean blue accents for key signals.",
+    "aurora-glass": "A cooler teal-glass interface with softer depth and a more translucent feel."
+  }
+};

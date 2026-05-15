@@ -1,0 +1,39 @@
+{
+  "name": "techbrief",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "bin": {
+    "techbrief": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "cheerio": "^1.2.0",
+    "fast-xml-parser": "^4.5.0",
+    "ink": "^5.1.0",
+    "react": "18.3.1",
+    "tar": "^7.5.13"
+  },
+  "devDependencies": {
+    "@techbrief/feed": "0.1.0",
+    "@techbrief/feed-rules": "0.1.0",
+    "@techbrief/ingest": "0.1.0",
+    "@techbrief/pipeline": "0.1.0",
+    "@techbrief/runtime": "0.1.0",
+    "@techbrief/scheduler": "0.1.0",
+    "@techbrief/shared": "0.1.0",
+    "@techbrief/ai": "0.1.0",
+    "@techbrief/converter": "0.1.0",
+    "@types/react": "18.3.28",
+    "esbuild": "^0.27.4"
+  }
+}
