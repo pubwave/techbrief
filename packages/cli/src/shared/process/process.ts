@@ -77,6 +77,68 @@ export async function ensureDetachedProcessStopped(pidFile: string): Promise<voi
   await rm(pidFile, { force: true });
 }
 
+function collectPortPidsUnix(port: number): number[] {
+  const { spawnSync } = require("node:child_process") as typeof import("node:child_process");
+  const result = spawnSync("lsof", ["-ti", `:${port}`], { encoding: "utf8" });
+  if (result.status !== 0 || !result.stdout?.trim()) {
+    return [];
+  }
+  return result.stdout
+    .trim()
+    .split("\n")
+    .map((raw) => Number.parseInt(raw.trim(), 10))
+    .filter((pid) => Number.isFinite(pid));
+}
+
+function collectPortPidsWindows(port: number): number[] {
+  const { spawnSync } = require("node:child_process") as typeof import("node:child_process");
+  const result = spawnSync("netstat", ["-ano"], { encoding: "utf8" });
+  if (result.status !== 0 || !result.stdout?.trim()) {
+    return [];
+  }
+  const pids = new Set<number>();
+  for (const line of result.stdout.split("\n")) {
+    // Match lines like: TCP  0.0.0.0:9541  ...  LISTENING  1234
+    if (!line.includes(`:${port} `) && !line.includes(`:${port}\t`)) {
+      continue;
+    }
+    const parts = line.trim().split(/\s+/);
+    const pid = Number.parseInt(parts.at(-1) ?? "", 10);
+    if (Number.isFinite(pid) && pid > 0) {
+      pids.add(pid);
+    }
+  }
+  return [...pids];
+}
+
+function killPortPidsWindows(pids: number[]): void {
+  const { spawnSync } = require("node:child_process") as typeof import("node:child_process");
+  for (const pid of pids) {
+    try {
+      spawnSync("taskkill", ["/F", "/PID", String(pid)], { encoding: "utf8" });
+    } catch {
+      // process already gone
+    }
+  }
+}
+
+export async function ensurePortFree(port: number): Promise<void> {
+  if (process.platform === "win32") {
+    const pids = collectPortPidsWindows(port);
+    killPortPidsWindows(pids);
+    return;
+  }
+
+  const pids = collectPortPidsUnix(port);
+  for (const pid of pids) {
+    try {
+      process.kill(pid, "SIGTERM");
+    } catch {
+      // process already gone
+    }
+  }
+}
+
 export async function stopManagedProcess(handle: ManagedProcessHandle): Promise<void> {
   if (isProcessRunning(handle.pid)) {
     handle.child.kill("SIGTERM");
@@ -84,7 +146,8 @@ export async function stopManagedProcess(handle: ManagedProcessHandle): Promise<
     await new Promise<void>((resolve) => {
       const timeout = setTimeout(() => {
         if (isProcessRunning(handle.pid)) {
-          handle.child.kill("SIGKILL");
+          // SIGKILL is not supported on Windows; SIGTERM already maps to TerminateProcess there.
+          handle.child.kill(process.platform === "win32" ? "SIGTERM" : "SIGKILL");
         }
       }, 2000);
 

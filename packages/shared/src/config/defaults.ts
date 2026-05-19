@@ -89,6 +89,10 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
       allowCategories: ["tech-news", "indie-dev"]
     }
   },
+  server: {
+    apiPort: 9541,
+    webPort: 9540
+  },
   web: {
     docker: true
   },

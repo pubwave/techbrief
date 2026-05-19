@@ -1,5 +1,5 @@
 import { performInitialFeedSync } from "./feed-sync.js";
-import { processArticlesProgressText, syncProgressText, yieldToUi } from "../core/helpers.js";
+import { processArticlesProgressText, syncSourceProgressText, yieldToUi } from "../core/helpers.js";
 import type { LaunchInput, LaunchResult, LaunchStep } from "../core/types.js";
 import type { WizardLocale } from "../../../shared/i18n/wizard/index.js";
 
@@ -10,14 +10,13 @@ export async function runInitialSyncStage(
 ): Promise<LaunchResult["sync"]> {
   input.onProgress?.("sync-feed");
   await yieldToUi();
-  await input.onProgressText?.(syncProgressText(locale, 0));
   const syncResult = await performInitialFeedSync(locale, {
     onOutput: async (line) => {
       await input.onOutput?.(line, "stdout");
       await yieldToUi();
     },
-    onSyncPercent: async (percent) => {
-      await input.onProgressText?.(syncProgressText(locale, percent));
+    onSyncSourceProgress: async (sourceId, completed, total) => {
+      await input.onProgressText?.(syncSourceProgressText(locale, sourceId, completed, total));
       await yieldToUi();
     },
     onProcessStart: async () => {

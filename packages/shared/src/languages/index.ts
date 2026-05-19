@@ -16,3 +16,5 @@ export const SUPPORTED_LANGUAGES: LanguageOption[] = [
 ];
 
 export * from "./ai-mode.js";
+export * from "./types.js";
+export * from "./locales/index.js";

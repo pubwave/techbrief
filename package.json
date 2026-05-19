@@ -13,6 +13,7 @@
     "dev:server": "npm run dev -w @techbrief/server",
     "dev:web": "npm run dev -w @techbrief/web",
     "dev:cli": "npm run dev -w techbrief",
+    "dev:cli:session": "npm run dev:session -w techbrief",
     "pack:cli": "npm run build -w techbrief && npm_config_cache=/tmp/techbrief-npm-cache npm pack -w techbrief --pack-destination /tmp/techbrief-pack",
     "pack:cli:dry": "npm run build -w techbrief && npm_config_cache=/tmp/techbrief-npm-cache npm pack --dry-run -w techbrief",
     "docker:up": "docker compose -f infra/docker-compose.yml up -d --build",
@@ -24,8 +25,8 @@
   },
   "overrides": {
     "ink": {
-      "@types/react": "18.3.28",
-      "react": "18.3.1"
+      "@types/react": "19.2.14",
+      "react": "19.2.6"
     }
   },
   "devDependencies": {

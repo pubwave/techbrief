@@ -7,6 +7,7 @@ import { startArticleProcessingProgress, type ArticleProcessingProgress } from "
 export interface FeedSyncCallbacks {
   onOutput?: (line: string) => Promise<void> | void;
   onSyncPercent?: (percent: number) => Promise<void> | void;
+  onSyncSourceProgress?: (sourceId: string, index: number, total: number) => Promise<void> | void;
   onProcessPercent?: (percent: number) => Promise<void> | void;
   onProcessStart?: () => Promise<void> | void;
   onArticleProcessingProgress?: (progress: ArticleProcessingProgress) => Promise<void> | void;
@@ -43,14 +44,14 @@ export async function performInitialFeedSync(
         },
         onSourceFetched: async (source, articleCount, index, total) => {
           sourceProgressCompleted += 1;
-          await callbacks?.onSyncPercent?.(calculateFeedSyncPercent(sourceProgressCompleted, Math.max(total, 1), 0));
+          await callbacks?.onSyncSourceProgress?.(source.id, sourceProgressCompleted, Math.max(total, 1));
           await callbacks?.onOutput?.(
             `${formatSourceProgress(locale, "launchSyncSourceFetched", source.id, index, total)} ${articleCount}`
           );
         },
         onSourceSkipped: async (source, reason, index, total) => {
           sourceProgressCompleted += 1;
-          await callbacks?.onSyncPercent?.(calculateFeedSyncPercent(sourceProgressCompleted, Math.max(total, 1), 0));
+          await callbacks?.onSyncSourceProgress?.(source.id, sourceProgressCompleted, Math.max(total, 1));
           await appendSyncLogEntry({
             phase: "source-skipped",
             sourceId: source.id,

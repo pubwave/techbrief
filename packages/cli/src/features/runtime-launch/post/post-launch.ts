@@ -14,6 +14,8 @@ export async function runPostLaunchStages(input: {
   let mobileInstallOk = true;
 
   if (!input.launchInput.noMobile && input.launchInput.mobilePlatform) {
+    input.launchInput.onProgress?.("mobile-install");
+    await yieldToUi();
     const mobileResult = await runMobileFromTemplate({
       platform: input.launchInput.mobilePlatform,
       apiBaseUrl: input.apiUrl,

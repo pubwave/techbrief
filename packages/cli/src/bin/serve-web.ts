@@ -6,9 +6,9 @@ import http from "node:http";
 import https from "node:https";
 
 const webRoot = process.env.TECHBRIEF_WEB_DIST ?? "";
-const apiBaseUrl = process.env.TECHBRIEF_API_BASE_URL ?? "http://127.0.0.1:4310";
+const apiBaseUrl = process.env.TECHBRIEF_API_BASE_URL ?? "http://127.0.0.1:9541";
 const host = process.env.HOST ?? "127.0.0.1";
-const port = Number.parseInt(process.env.PORT ?? "4320", 10);
+const port = Number.parseInt(process.env.PORT ?? "9540", 10);
 
 const mimeTypes: Record<string, string> = {
   ".css": "text/css; charset=utf-8",
@@ -104,11 +104,14 @@ async function proxyRequest(request: import("node:http").IncomingMessage, respon
       reject(error);
     });
 
-    request.on("aborted", closeUpstream);
-    request.on("close", closeUpstream);
+    // Only close upstream when the *client* disconnects mid-response.
+    // Do NOT listen to request "close"/"aborted" — for GET requests the request
+    // stream closes immediately (no body), which would destroy the upstream
+    // connection before the response arrives.
     response.on("close", closeUpstream);
 
-    if (request.readable) {
+    const methodHasBody = request.method === "POST" || request.method === "PUT" || request.method === "PATCH";
+    if (methodHasBody) {
       request.pipe(upstreamRequest);
       return;
     }

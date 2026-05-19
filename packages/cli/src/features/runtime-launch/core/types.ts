@@ -40,6 +40,17 @@ export interface LaunchResult {
   steps: Array<{ label: string; ok: boolean; detail: string }>;
 }
 
+export interface LaunchHandle {
+  ok: boolean;
+  apiUrl: string;
+  webUrl: string;
+  runtimeRoot: string;
+  workspaceDir: string;
+  sync: LaunchResult["sync"];
+  steps: LaunchStep[];
+  startServices(): Promise<LaunchResult>;
+}
+
 export interface LaunchStep {
   label: string;
   ok: boolean;

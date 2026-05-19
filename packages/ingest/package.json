@@ -12,6 +12,7 @@
   "dependencies": {
     "@techbrief/shared": "0.1.0",
     "cheerio": "^1.2.0",
+    "domhandler": "^5.0.3",
     "fast-xml-parser": "^4.5.0"
   }
 }

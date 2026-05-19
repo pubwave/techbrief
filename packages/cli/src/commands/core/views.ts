@@ -6,9 +6,8 @@ import { runDoctorChecks } from "../../shared/runtime/doctor.js";
 import { formatDockerComposeCommand, runDockerCompose } from "../../shared/runtime/docker.js";
 import { ensureFlutterTool } from "../../features/mobile-install/workflow/flutter-sdk.js";
 import { appendSyncLogEntry, launchTechBrief, runtimeServiceStatus, stopRuntimeServices } from "../../features/runtime-launch/index.js";
-import { type MobilePlatform, runMobileFromTemplate } from "../../features/mobile-install/index.js";
 import { commandResultLines } from "../../shared/process/command-results.js";
-import { type LaunchOptions } from "../../app/launch-options.js";
+import { type LaunchOptions } from "../../pubwave-launch-options.js";
 import { detectWizardLocale, wizardMessage } from "../../shared/i18n/wizard/index.js";
 import { createLine, createSection } from "../../shared/ui/ui.js";
 import { formatCommand, mobileAppRoot, runCommand, workspaceRoot } from "../../shared/paths/workspace.js";
@@ -172,30 +171,6 @@ export async function webDockerView(action: "up" | "down" | "logs"): Promise<Rea
   ]);
 }
 
-export async function mobileRunView(platform: MobilePlatform, options: Record<string, string | boolean>): Promise<React.ReactElement> {
-  const result = await runMobileFromTemplate({
-    platform,
-    ...(typeof options["api-base-url"] === "string" ? { apiBaseUrl: options["api-base-url"] } : {}),
-    ...(typeof options["template-url"] === "string" ? { templateUrl: options["template-url"] } : {}),
-    keepTemp: options["keep-temp"] === true
-  });
-
-  return createSection(`Mobile ${platform === "ios" ? "iOS" : "Android"} Run`, [
-    createLine(`Template: ${result.templateUrl}`),
-    createLine(`Temp workspace: ${result.tempRoot}`),
-    ...(result.selectedDevice
-      ? [createLine(`Selected device: ${result.selectedDevice.name} (${result.selectedDevice.id})`, "cyan")]
-      : []),
-    ...result.steps.map((step, index) =>
-      createLine(`${step.ok ? "OK" : "FAIL"} ${step.label}: ${step.detail}`, step.ok ? "green" : "red", `mobile-${index}`)
-    ),
-    createLine(
-      result.cleanupPerformed ? "Temporary project files were removed." : "Temporary project files were kept on disk.",
-      result.cleanupPerformed ? "yellow" : "cyan"
-    ),
-    createLine(result.ok ? "Mobile workflow completed." : "Mobile workflow completed with errors.", result.ok ? "green" : "yellow")
-  ]);
-}
 
 export async function syncView(): Promise<React.ReactElement> {
   try {

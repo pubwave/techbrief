@@ -49,6 +49,10 @@ export function syncProgressText(locale: WizardLocale, percent: number): string 
   return `${stripTrailingDots(wizardMessage(locale, "progressSyncFeed"))} ${percent}%...`;
 }
 
+export function syncSourceProgressText(locale: WizardLocale, sourceId: string, completed: number, total: number): string {
+  return `${stripTrailingDots(wizardMessage(locale, "progressSyncFeed"))} ${sourceId} (${completed}/${total})`;
+}
+
 export function processArticlesProgressText(locale: WizardLocale, percent: number): string {
   void percent;
   return wizardMessage(locale, "progressProcessArticles");

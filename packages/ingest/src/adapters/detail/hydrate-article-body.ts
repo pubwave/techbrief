@@ -37,11 +37,5 @@ export async function hydrateArticleBody(article: FeedArticle): Promise<FeedArti
 }
 
 export async function hydrateArticleBodies(articles: FeedArticle[]): Promise<FeedArticle[]> {
-  const hydrated: FeedArticle[] = [];
-
-  for (const article of articles) {
-    hydrated.push(await hydrateArticleBody(article));
-  }
-
-  return hydrated;
+  return Promise.all(articles.map((article) => hydrateArticleBody(article)));
 }

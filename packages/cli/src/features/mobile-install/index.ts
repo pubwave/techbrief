@@ -1,14 +1,4 @@
-import type {
-  MobileInstallableDevice,
-  MobilePlatform,
-  MobileProgressCallbacks,
-  MobileProgressStage,
-  MobileReadinessResult,
-  MobileRunInput,
-  MobileRunResult
-} from "./types.js";
-import type { WizardLocale } from "../../shared/i18n/wizard/index.js";
-import { inspectMobileReadiness as inspectMobileReadinessFlow } from "./mobile-readiness.js";
+import type { MobileProgressCallbacks, MobileRunInput, MobileRunResult } from "./types.js";
 import { runMobileFromTemplate as runMobileFromTemplateFlow } from "./mobile-run.js";
 
 export type {
@@ -22,13 +12,6 @@ export type {
   MobileRunInput,
   MobileRunResult
 } from "./types.js";
-
-export async function inspectMobileReadiness(
-  localeInput?: WizardLocale,
-  callbacks?: MobileProgressCallbacks
-): Promise<MobileReadinessResult> {
-  return await inspectMobileReadinessFlow(localeInput, callbacks);
-}
 
 export async function runMobileFromTemplate(
   input: MobileRunInput,

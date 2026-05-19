@@ -25,6 +25,10 @@ export interface AppConfig {
     defaultLanguage: string;
     freshnessDays: 1 | 3 | 5 | 7;
   };
+  server?: {
+    apiPort?: number;
+    webPort?: number;
+  };
   schedule: {
     mode: SchedulePolicy["mode"];
     intervalHours?: number;
