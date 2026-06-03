@@ -1,12 +1,12 @@
 # TechBrief
 
-Read the world's tech news and indie‑dev writing in one place — with AI
-summaries and translation into your language.
+A multilingual reader for tech news and indie‑dev writing — every article gets a
+short summary, and AI translates it into your language.
 
-TechBrief gathers articles from sources like Hacker News, Dev.to, Hashnode and
-RSS feeds, then uses AI to give each article a short summary and translate it
-into the language you choose. You read it all in a clean web page or on your
-phone.
+TechBrief gathers articles from Hacker News, Dev.to, Hashnode and RSS feeds and
+gives each one a short summary. Pick your reading language: anything not already
+in it is translated by AI (reading in English needs no AI at all). You read it
+all in a clean web page or on your phone.
 
 ![The TechBrief web reader](https://raw.githubusercontent.com/pubwave/techbrief/main/assets/home/web-reader.png)
 
@@ -36,7 +36,8 @@ That's it.
 
 ## Choosing your AI
 
-During setup you pick how summaries and translation are made:
+Translation is done by AI (summaries are generated locally without it). During
+setup you pick which AI to use:
 
 - **Local** — runs on your own machine with [Ollama](https://ollama.com/). Free,
   private, no API key.
@@ -56,7 +57,7 @@ techbrief mobile run ios       # or: android
 
 ![The TechBrief mobile app](https://raw.githubusercontent.com/pubwave/techbrief/main/assets/home/mobile-app.png)
 
-This installs the app and points it at the TechBrief running on your computer.
+Once it's installed, just open the app and start reading.
 
 ## Everyday commands
 
@@ -82,8 +83,8 @@ packages). To run it from source:
 ```bash
 npm install
 npm run build
-npm run dev:server   # API on http://127.0.0.1:4310
-npm run dev:web      # web reader
+npm run dev:server   # API server
+npm run dev:web      # web reader (Vite dev server)
 ```
 
 More detail lives in each package's folder under `apps/` and `packages/`.
