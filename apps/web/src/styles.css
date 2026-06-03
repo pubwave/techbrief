@@ -69,6 +69,7 @@
     --tb-tag-background: #e8dece;
     --tb-surface-button: #ece5d9;
     --tb-surface-nav: #e9e1d4;
+    --tb-surface-app: #efe4d4;
     --tb-text-primary: #1f2c3a;
     --tb-text-secondary: #5f6f82;
     --tb-text-body: #3a4553;
@@ -119,6 +120,7 @@
     --tb-tag-background: rgba(18, 47, 58, 0.98);
     --tb-surface-button: rgba(22, 56, 69, 0.92);
     --tb-surface-nav: rgba(25, 61, 75, 0.94);
+    --tb-surface-app: #102b33;
     --tb-text-primary: #e8fffb;
     --tb-text-secondary: #a0d0d4;
     --tb-text-body: #c8eae8;
@@ -335,5 +337,22 @@
   40% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes tb-progress-sweep {
+  0% {
+    left: -45%;
+    width: 45%;
+  }
+
+  60% {
+    left: 100%;
+    width: 45%;
+  }
+
+  100% {
+    left: 100%;
+    width: 45%;
   }
 }

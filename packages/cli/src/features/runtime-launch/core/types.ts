@@ -1,5 +1,5 @@
 import type { FeedArticle } from "@techbrief/shared";
-import type { MobilePlatform } from "../../mobile-install/index.js";
+import type { LocalModelRuntime } from "@pubwave/cli";
 import type { WizardLocale } from "../../../shared/i18n/wizard/index.js";
 import type { ArticleProcessingProgress } from "../sync/article-processing-progress.js";
 
@@ -7,10 +7,9 @@ export interface LaunchInput {
   apiPort?: number;
   webPort?: number;
   host?: string;
+  localModelRuntime?: LocalModelRuntime;
   noOpen?: boolean;
-  noMobile?: boolean;
   session?: boolean;
-  mobilePlatform?: MobilePlatform;
   locale?: WizardLocale;
   templateUrl?: string;
   onProgress?: (stage: string) => void;
@@ -36,6 +35,7 @@ export interface LaunchResult {
   sync: {
     ok: boolean;
     detail: string;
+    superseded?: boolean;
   };
   steps: Array<{ label: string; ok: boolean; detail: string }>;
 }

@@ -13,6 +13,7 @@ export interface FeedArticle {
   author?: string;
   publishedAt: string;
   originalUrl: string;
+  sourceUrl?: string;
   coverImage?: string;
   tags: string[];
   language: string;

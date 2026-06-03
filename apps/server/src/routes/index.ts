@@ -1,7 +1,9 @@
 import type { RequestContext } from "../http.js";
 import { sendJson, sendNoContent } from "../http.js";
+import { HttpError } from "../http-error.js";
 import { handleConfigRoute } from "./config.js";
 import { handleFeedDetailRoute } from "./feed/detail.js";
+import { handleFeedEventsRoute } from "./feed/events.js";
 import { handleFeedListRoute } from "./feed/list.js";
 import { handleFeedTranslationStreamRoute } from "./feed/translation-stream.js";
 import { handleSyncRoute } from "./feed/sync.js";
@@ -27,6 +29,9 @@ export async function handleRoute(context: RequestContext): Promise<void> {
     switch (url.pathname) {
       case "/v1/feed":
         await handleFeedListRoute(context);
+        return;
+      case "/v1/feed/events":
+        await handleFeedEventsRoute(context);
         return;
       case "/v1/sync":
         await handleSyncRoute(context);
@@ -66,9 +71,14 @@ export async function handleRoute(context: RequestContext): Promise<void> {
         sendJson(response, 404, { error: `Route '${url.pathname}' was not found.` });
     }
   } catch (error) {
-    sendJson(response, 400, {
-      error: error instanceof Error ? error.message : "Unexpected server error."
-    });
+    if (error instanceof HttpError) {
+      sendJson(response, error.statusCode, { error: error.message });
+    } else {
+      // Unknown failure (DB/AI/programming error) — a real 500, not a disguised
+      // 400. Log server-side; return a generic message to the client.
+      console.error(`Unhandled error on ${request.method} ${url.pathname}:`, error);
+      sendJson(response, 500, { error: "Internal server error." });
+    }
   }
 
   if (!response.writableEnded) {

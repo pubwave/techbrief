@@ -7,12 +7,14 @@ import { mapHtmlDetailToArticle } from "./map-detail.js";
 import { getHtmlSourceRule } from "./rules.js";
 import type { FetchHtmlSourceArticlesInput, FetchHtmlSourceArticlesResult } from "./types.js";
 import { formatFetchError } from "../shared/fetch-error.js";
+import { sourceFetchSignal } from "../shared/fetch-timeout.js";
 
 async function fetchText(url: string): Promise<string> {
   const response = await fetch(url, {
     headers: {
       "user-agent": "TechBriefBot/0.1 (+https://github.com/pubwave/techbrief)"
-    }
+    },
+    signal: sourceFetchSignal()
   });
 
   if (!response.ok) {
@@ -20,6 +22,21 @@ async function fetchText(url: string): Promise<string> {
   }
 
   return response.text();
+}
+
+function selectCandidatesForDetailFetch(
+  candidates: ReturnType<typeof extractArticleCandidates>,
+  freshnessDays: number,
+  maxArticles: number
+): ReturnType<typeof extractArticleCandidates> {
+  const freshOrUnknown = candidates.filter((candidate) => !candidate.publishedAt || isFresh(candidate.publishedAt, freshnessDays));
+  return freshOrUnknown
+    .sort((left, right) => {
+      const leftTime = left.publishedAt ? Date.parse(left.publishedAt) : Number.NEGATIVE_INFINITY;
+      const rightTime = right.publishedAt ? Date.parse(right.publishedAt) : Number.NEGATIVE_INFINITY;
+      return rightTime - leftTime;
+    })
+    .slice(0, maxArticles);
 }
 
 export async function fetchHtmlSourceArticles({
@@ -37,7 +54,7 @@ export async function fetchHtmlSourceArticles({
 
   try {
     const listingHtml = await fetchText(rule.listingUrl ?? source.homepage);
-    const candidates = extractArticleCandidates(listingHtml, source, rule).slice(0, rule.maxArticles);
+    const candidates = selectCandidatesForDetailFetch(extractArticleCandidates(listingHtml, source, rule), freshnessDays, rule.maxArticles);
     const articles: FeedArticle[] = [];
 
     for (const candidate of candidates) {
@@ -56,7 +73,11 @@ export async function fetchHtmlSourceArticles({
           continue;
         }
 
-        const publishedAt = extractPublishedAt(detailHtml, rule.dateSelectors ?? ["time[datetime]", "time"]);
+        const publishedAt = extractPublishedAt(detailHtml, rule.dateSelectors ?? ["time[datetime]", "time"], candidate.originalUrl) ?? candidate.publishedAt;
+        if (!publishedAt) {
+          continue;
+        }
+
         if (!isFresh(publishedAt, freshnessDays)) {
           continue;
         }
@@ -73,8 +94,8 @@ export async function fetchHtmlSourceArticles({
           })
         );
       } catch {
-        if (candidate.title) {
-          const publishedAt = candidate.publishedAt ?? new Date().toISOString();
+        if (candidate.title && candidate.publishedAt) {
+          const publishedAt = candidate.publishedAt;
           if (isFresh(publishedAt, freshnessDays)) {
             articles.push(
               mapHtmlDetailToArticle(source, {

@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from "react-router";
-import { useAppRuntime } from "../app/AppRuntimeContext";
+import { useAppRuntime } from "../app/app-runtime";
 import { SideNav, type AppView } from "./SideNav";
 
 export function AppLayout() {

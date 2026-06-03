@@ -97,7 +97,7 @@ export async function attachArticleTranslationJob(input: {
     }
 
     return result.article;
-  }).finally(() => {
+  }, true).finally(() => {
     translationJobs.delete(key);
   });
 
@@ -142,5 +142,5 @@ function resolveQueueConcurrency(ai: { modelSource: string; provider: string }):
     return 2;
   }
 
-  return 2;
+  return 4;
 }

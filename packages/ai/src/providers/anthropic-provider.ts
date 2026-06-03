@@ -3,6 +3,7 @@ import type { AiOutput, AiProvider, HttpProviderOptions } from "../types.js";
 import { createParsedArticleAiOutput } from "./output.js";
 import { buildArticlePrompt, buildBodyTranslationPrompt, parseJsonObject } from "./prompt.js";
 import { responseIsEventStream, streamAnthropicMessageText } from "./stream-parser.js";
+import { AI_REQUEST_TIMEOUT_MS } from "./fetch-timeout.js";
 
 const ANTHROPIC_BODY_MAX_TOKENS = 4096;
 const ANTHROPIC_VERSION = "2023-06-01";
@@ -44,7 +45,8 @@ export class AnthropicProvider implements AiProvider {
             content: buildArticlePrompt(article, targetLanguage)
           }
         ]
-      })
+      }),
+      signal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS)
     });
 
     if (!response.ok) {

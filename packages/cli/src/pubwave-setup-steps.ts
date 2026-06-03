@@ -11,7 +11,7 @@ function getCatalog(locale: string) {
 
 export const freshnessDaysStep: CustomSetupStep<AppConfig> = {
   id: "freshnessDays",
-  insertAfter: "model",
+  insertBefore: "mobileInstall",
   kind: "choice",
   title: ({ locale }) => getCatalog(locale).freshnessTitle,
   hint: ({ locale }) => getCatalog(locale).freshnessHint,

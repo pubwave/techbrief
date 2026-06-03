@@ -30,7 +30,7 @@ export interface SyncSourcesInput {
   ) => Promise<void> | void;
 }
 
-export interface SyncSourcesOutput extends SyncRunResult {}
+export type SyncSourcesOutput = SyncRunResult;
 
 export async function syncSources(input: SyncSourcesInput): Promise<SyncSourcesOutput> {
   const sources = input.sources ?? DEFAULT_SOURCES;

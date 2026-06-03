@@ -1,48 +1,25 @@
-const SOURCE_COLORS: Record<string, string> = {
-  "Anthropic Newsroom": "#7c6af5",
-  "Anthropic": "#7c6af5",
-  "Vercel Blog": "#e0e0e0",
-  "Vercel": "#e0e0e0",
-  "GitHub Blog": "#6bab6b",
-  "GitHub": "#6bab6b",
-  "The Verge": "#e85d4a",
-  "Hacker News": "#f06a1b",
-  "OpenAI Blog": "#5bb0ed",
-  "OpenAI": "#5bb0ed",
-  "CSS Tricks": "#f0b429"
-};
-
-const FALLBACK_PALETTE = [
-  "#4d9cf6",
-  "#7c6af5",
-  "#6bab6b",
-  "#e85d4a",
-  "#f06a1b",
-  "#5bb0ed",
-  "#f0b429",
-  "#35d6ff"
-];
-
-export function getSourceColor(source: string): string {
-  const hit = SOURCE_COLORS[source];
-  if (hit) {
-    return hit;
-  }
-  let hash = 0;
-  for (let i = 0; i < source.length; i += 1) {
-    hash = (hash * 31 + source.charCodeAt(i)) >>> 0;
-  }
-  return FALLBACK_PALETTE[hash % FALLBACK_PALETTE.length] as string;
-}
+import { getSourceColor } from "../lib/source-colors";
 
 interface SourceAvatarProps {
   source: string;
   size?: number;
 }
 
+// Two-letter initials, matching the mobile SourceAvatar: first letter of the
+// first two words, or the first two characters of a single-word name.
+function sourceInitials(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  const words = trimmed.split(/\s+/);
+  if (words.length >= 2) {
+    return ((words[0]?.charAt(0) ?? "") + (words[1]?.charAt(0) ?? "")).toUpperCase();
+  }
+  return trimmed.slice(0, 2).toUpperCase();
+}
+
 export function SourceAvatar({ source, size = 24 }: SourceAvatarProps) {
   const color = getSourceColor(source);
-  const letter = (source.trim().charAt(0) || "?").toUpperCase();
+  const initials = sourceInitials(source);
   return (
     <div
       aria-hidden
@@ -53,11 +30,11 @@ export function SourceAvatar({ source, size = 24 }: SourceAvatarProps) {
         background: `${color}22`,
         border: `1px solid ${color}44`,
         color,
-        fontSize: Math.round(size * 0.46),
+        fontSize: Math.round(size * (initials.length > 1 ? 0.38 : 0.46)),
         letterSpacing: "-0.02em"
       }}
     >
-      {letter}
+      {initials}
     </div>
   );
 }

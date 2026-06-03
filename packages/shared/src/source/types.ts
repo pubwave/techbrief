@@ -19,6 +19,9 @@ export interface SourceDefinition {
   techNewsKind?: TechNewsSourceKind;
   description: string;
   tags: string[];
+  // Ranking priority added to a source's articles in the feed sort. Higher =
+  // ranked higher. Default per built-in source below; custom sources default 10.
+  priority: number;
 }
 
 export interface SourceValidationIssue {

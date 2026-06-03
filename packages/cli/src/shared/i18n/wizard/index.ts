@@ -1,11 +1,7 @@
 import {
-  localizedCloudModelChoices,
-  localizedCloudProviderChoices,
   localizedFreshnessChoices,
   localizedLanguageChoices,
   localizedLocalModelChoices,
-  localizedMobileInstallChoices,
-  localizedMobilePlatformChoices,
   localizedModelSourceChoices
 } from "./choices.js";
 import { defaultWizardLanguage, detectWizardLocale } from "./detect-locale.js";
@@ -14,13 +10,9 @@ import type { MessageKey, WizardLocale } from "./types.js";
 
 export { defaultWizardLanguage, detectWizardLocale };
 export {
-  localizedCloudModelChoices,
-  localizedCloudProviderChoices,
   localizedFreshnessChoices,
   localizedLanguageChoices,
   localizedLocalModelChoices,
-  localizedMobileInstallChoices,
-  localizedMobilePlatformChoices,
   localizedModelSourceChoices
 };
 export type { WizardLocale };

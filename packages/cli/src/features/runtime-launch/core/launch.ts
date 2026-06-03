@@ -1,12 +1,22 @@
 import path from "node:path";
-import { markInitialSyncCompleted, markInitialSyncFailed, markInitialSyncStarted } from "@techbrief/runtime";
+import { existsSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import {
+  isInitialSyncCompleteForConfig,
+  isInitialSyncOwnedBy,
+  listAllSources,
+  loadConfig,
+  markInitialSyncCompleted,
+  markInitialSyncFailed,
+  markSchedulerSourcesRun,
+  markInitialSyncStarted
+} from "@techbrief/runtime";
 import { ensureDetachedProcessStopped, ensurePortFree } from "../../../shared/process/process.js";
 import { registerSessionCleanupTask } from "../../../shared/process/session-cleanup.js";
 import { processFiles, runtimeRoot as resolveRuntimeRoot } from "../../../shared/paths/runtime-paths.js";
 import { resolveCliAppHome } from "../../../shared/paths/app-home.js";
-import { ensureRuntimeWorkspace } from "../../../shared/runtime/runtime-workspace.js";
 import { wizardMessage } from "../../../shared/i18n/wizard/index.js";
-import { launchLocale, resolveServeSchedulerScriptPath, resolveServeWebScriptPath, yieldToUi } from "./helpers.js";
+import { launchLocale, resolveServeApiScriptPath, resolveServeSchedulerScriptPath, resolveServeWebScriptPath, resolveWebDistDir, yieldToUi } from "./helpers.js";
 import { runPostLaunchStages } from "../post/post-launch.js";
 import { launchServiceWithHealth, startRuntimeService } from "../services/service-launch.js";
 import { runInitialSyncStage } from "../sync/sync-stage.js";
@@ -43,25 +53,32 @@ export async function prepareLaunchTechBrief(input: LaunchInput): Promise<Launch
 
   input.onProgress?.("prepare-runtime");
   await yieldToUi();
-  const runtime = await ensureRuntimeWorkspace({
-    runtimeRoot: resolveRuntimeRoot(),
-    onProgress: () => {},
-    ...(input.templateUrl ? { templateUrl: input.templateUrl } : {})
-  });
-  const steps: LaunchStep[] = [...runtime.steps];
+  // The published CLI ships a prebuilt web client and a bundled API server, so
+  // there is no source download or on-machine build — resolve them in-package
+  // (falling back to the local monorepo build when running from source).
+  const runtimeRoot = resolveRuntimeRoot();
+  const apiScript = resolveServeApiScriptPath();
+  const webDist = resolveWebDistDir();
+  const workspaceDir = path.dirname(webDist);
+  const assetsReady = existsSync(apiScript) && existsSync(path.join(webDist, "index.html"));
+  const steps: LaunchStep[] = [{
+    label: "assets",
+    ok: assetsReady,
+    detail: assetsReady ? "Using bundled web and API assets." : "Bundled web/API assets were not found."
+  }];
 
-  if (!runtime.ok) {
+  if (!assetsReady) {
     const sync = { ok: false, detail: wizardMessage(locale, "launchSyncSkippedRuntime") };
     return {
       ok: false,
       apiUrl,
       webUrl,
-      runtimeRoot: runtime.runtimeRoot,
-      workspaceDir: runtime.workspaceDir,
+      runtimeRoot,
+      workspaceDir,
       sync,
       steps,
       startServices: async () =>
-        createLaunchResult({ ok: false, apiUrl, webUrl, runtimeRoot: runtime.runtimeRoot, workspaceDir: runtime.workspaceDir, sync, steps })
+        createLaunchResult({ ok: false, apiUrl, webUrl, runtimeRoot, workspaceDir, sync, steps })
     };
   }
 
@@ -81,19 +98,29 @@ export async function prepareLaunchTechBrief(input: LaunchInput): Promise<Launch
   await ensurePortFree(apiPort);
   await ensurePortFree(webPort);
 
-  await markInitialSyncStarted(locale);
-
   let syncResult: LaunchResult["sync"];
-  try {
-    syncResult = await runInitialSyncStage(locale, input, steps);
-    if (syncResult.ok) {
-      await markInitialSyncCompleted(locale);
-    } else {
-      await markInitialSyncFailed(locale, syncResult.detail);
+  const config = await loadConfig();
+  const initialSyncComplete = await isInitialSyncCompleteForConfig(config);
+  if (initialSyncComplete) {
+    syncResult = { ok: true, detail: wizardMessage(locale, "launchSyncCompleted") };
+  } else {
+    const syncOwnerId = randomUUID();
+    await markInitialSyncStarted(locale, syncOwnerId);
+
+    try {
+      syncResult = await runInitialSyncStage(locale, input, steps, {
+        shouldContinue: () => isInitialSyncOwnedBy(syncOwnerId)
+      });
+      if (syncResult.ok) {
+        await markInitialSyncCompleted(locale, syncOwnerId);
+        await markActiveSourcesScheduled(new Date().toISOString());
+      } else if (!syncResult.superseded) {
+        await markInitialSyncFailed(locale, syncResult.detail, syncOwnerId);
+      }
+    } catch (error) {
+      await markInitialSyncFailed(locale, error instanceof Error ? error.message : "Unexpected sync error", syncOwnerId);
+      throw error;
     }
-  } catch (error) {
-    await markInitialSyncFailed(locale, error instanceof Error ? error.message : "Unexpected sync error");
-    throw error;
   }
 
   const serviceState = { started: false, failed: false };
@@ -104,8 +131,8 @@ export async function prepareLaunchTechBrief(input: LaunchInput): Promise<Launch
         ok: serviceState.started,
         apiUrl,
         webUrl,
-        runtimeRoot: runtime.runtimeRoot,
-        workspaceDir: runtime.workspaceDir,
+        runtimeRoot: runtimeRoot,
+        workspaceDir: workspaceDir,
         sync: syncResult,
         steps
       });
@@ -116,9 +143,15 @@ export async function prepareLaunchTechBrief(input: LaunchInput): Promise<Launch
     const apiLaunch = await launchServiceWithHealth({
       name: "api",
       command: process.execPath,
-      args: [path.join(runtime.workspaceDir, "apps/server/dist/index.js")],
+      args: [apiScript],
       cwd: process.cwd(),
       env: {
+        // Bind the API on the LAN IP so mobile devices can reach it. Do NOT set
+        // OLLAMA_HOST: the API server is co-located with the local model, so it
+        // inherits the CLI's env and reaches Ollama over loopback (127.0.0.1),
+        // the same way the scheduler does. Forcing the LAN IP here pointed the
+        // server at an address where the 127.0.0.1-bound Ollama isn't listening,
+        // so translations never reached the model and failed language validation.
         HOST: host,
         PORT: String(apiPort),
         TECHBRIEF_HOME: appHome
@@ -136,7 +169,7 @@ export async function prepareLaunchTechBrief(input: LaunchInput): Promise<Launch
     if (!apiLaunch.startStep.ok || !apiLaunch.ok) {
       serviceState.failed = true;
       await apiLaunch.cleanup();
-      return createLaunchResult({ ok: false, apiUrl, webUrl, runtimeRoot: runtime.runtimeRoot, workspaceDir: runtime.workspaceDir, sync: syncResult, steps });
+      return createLaunchResult({ ok: false, apiUrl, webUrl, runtimeRoot: runtimeRoot, workspaceDir: workspaceDir, sync: syncResult, steps });
     }
 
     const schedulerLaunch = await startRuntimeService({
@@ -155,7 +188,7 @@ export async function prepareLaunchTechBrief(input: LaunchInput): Promise<Launch
       serviceState.failed = true;
       await schedulerLaunch.cleanup();
       await apiLaunch.cleanup();
-      return createLaunchResult({ ok: false, apiUrl, webUrl, runtimeRoot: runtime.runtimeRoot, workspaceDir: runtime.workspaceDir, sync: syncResult, steps });
+      return createLaunchResult({ ok: false, apiUrl, webUrl, runtimeRoot: runtimeRoot, workspaceDir: workspaceDir, sync: syncResult, steps });
     }
 
     input.onProgress?.("start-web");
@@ -169,8 +202,8 @@ export async function prepareLaunchTechBrief(input: LaunchInput): Promise<Launch
         HOST: host,
         PORT: String(webPort),
         TECHBRIEF_HOME: appHome,
-        TECHBRIEF_API_BASE_URL: apiUrl,
-        TECHBRIEF_WEB_DIST: path.join(runtime.workspaceDir, "apps/web/dist")
+        API_BASE_URL: apiUrl,
+        TECHBRIEF_WEB_DIST: webDist
       },
       pidFile: webPidFile,
       logFile: webFiles.logFile,
@@ -187,14 +220,14 @@ export async function prepareLaunchTechBrief(input: LaunchInput): Promise<Launch
       await webLaunch.cleanup();
       await schedulerLaunch.cleanup();
       await apiLaunch.cleanup();
-      return createLaunchResult({ ok: false, apiUrl, webUrl, runtimeRoot: runtime.runtimeRoot, workspaceDir: runtime.workspaceDir, sync: syncResult, steps });
+      return createLaunchResult({ ok: false, apiUrl, webUrl, runtimeRoot: runtimeRoot, workspaceDir: workspaceDir, sync: syncResult, steps });
     }
 
     serviceState.started = true;
 
     await runPostLaunchStages({
       locale,
-      launchInput: { ...input, noOpen: true, noMobile: true },
+      launchInput: { ...input, noOpen: true },
       apiUrl,
       webUrl,
       steps
@@ -204,8 +237,8 @@ export async function prepareLaunchTechBrief(input: LaunchInput): Promise<Launch
       ok: steps.every((step) => step.ok),
       apiUrl,
       webUrl,
-      runtimeRoot: runtime.runtimeRoot,
-      workspaceDir: runtime.workspaceDir,
+      runtimeRoot: runtimeRoot,
+      workspaceDir: workspaceDir,
       sync: syncResult,
       steps
     });
@@ -215,12 +248,21 @@ export async function prepareLaunchTechBrief(input: LaunchInput): Promise<Launch
     ok: syncResult.ok,
     apiUrl,
     webUrl,
-    runtimeRoot: runtime.runtimeRoot,
-    workspaceDir: runtime.workspaceDir,
+    runtimeRoot: runtimeRoot,
+    workspaceDir: workspaceDir,
     sync: syncResult,
     steps,
     startServices
   };
+}
+
+async function markActiveSourcesScheduled(runAt: string): Promise<void> {
+  const sources = (await listAllSources()).filter((source) => source.state === "enabled");
+  if (sources.length === 0) {
+    return;
+  }
+
+  await markSchedulerSourcesRun(sources.map((source) => source.id), runAt);
 }
 
 export async function launchTechBrief(input: LaunchInput): Promise<LaunchResult> {

@@ -12,15 +12,12 @@ export function techbriefAdditionalRows(ctx: SavedViewContext<AppConfig>): Saved
   const locale = ctx.initialConfig.language ?? "en";
   const catalog = getCatalog(locale);
 
-  const activeSets: string[] = [];
-  if (config.sources?.techNews?.enabled) activeSets.push("techNews");
-  if (config.sources?.indieDev?.enabled) activeSets.push("indieDev");
-  if (config.sources?.custom?.enabled) activeSets.push("custom");
+  const enabledSourceCount = Object.values(config.sources?.items ?? {}).filter((item) => item.enabled).length;
 
   const rows: SavedViewRow[] = [
     { label: catalog.freshnessRowLabel, value: config.app?.freshnessDays },
     { label: catalog.scheduleLabel, value: config.schedule?.mode },
-    { label: catalog.sourcesLabel, value: activeSets.length > 0 ? activeSets.join(", ") : "(none)" }
+    { label: catalog.sourcesLabel, value: enabledSourceCount > 0 ? String(enabledSourceCount) : catalog.noneLabel }
   ];
 
   return rows;

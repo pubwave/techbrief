@@ -1,53 +1,103 @@
-import '../../theme/app_theme.dart';
+import '../../theme/palette.dart';
 import '../app_strings.dart';
 
-final AppStrings ptStrings = AppStrings(
-  menuFeed: 'Feed',
-  menuSettings: 'Configurações',
-  signalReader: 'Leitor de sinais',
-  channel: 'Canal',
-  techNewsFilter: 'Empresas e mídia',
-  indieDevFilter: 'Desenvolvedores indie',
-  itemsCount: (value) => '$value itens',
-  searchPlaceholder: 'Pesquisar empresas, lançamentos, fundadores...',
-  backToFeed: '<- Feed',
-  openSourceLink: 'Abrir link da fonte',
-  unableToOpenSourceLink: 'Não foi possível abrir o link da fonte.',
-  settingsTitle: 'Configurações',
-  settingsDescription:
-      'Aponte o app para o seu servidor TechBrief e sincronize artigos recentes no SQLite local.',
-  apiBaseUrl: 'URL base da API',
-  apiBaseUrlHint: 'http://127.0.0.1:4310',
-  apiBaseUrlHelp:
-      'O emulador Android normalmente precisa de 10.0.2.2. O simulador iOS e o desktop podem usar 127.0.0.1.',
-  saveServer: 'Salvar servidor',
-  syncNow: 'Sincronizar agora',
-  syncingNow: 'Sincronizando…',
-  savedServerAddress: 'Endereço do servidor salvo.',
-  syncingLatestArticles: 'Sincronizando os artigos mais recentes…',
-  syncedArticles: (count, baseUrl) =>
-      '$count artigos sincronizados de $baseUrl.',
-  usingLocalCache: (error) => 'Usando cache local. $error',
-  themeTitle: 'Tema',
-  themeDescription:
-      'Mantenha a aparência atual como padrão ou mude para uma das direções visuais adicionais.',
-  active: 'Ativo',
-  apply: 'Aplicar',
-  minutesAgo: (value) => 'há $value min',
-  hoursAgo: (value) => 'há $value h',
-  daysAgo: (value) => 'há $value dia${value == 1 ? '' : 's'}',
-  justNow: 'Agora mesmo',
-  themeLabels: const <AppThemeId, String>{
-    AppThemeId.currentTheme: 'Sinal profundo',
-    AppThemeId.editorialDawn: 'Edição da manhã',
-    AppThemeId.auroraGlass: 'Vidro aurora',
-  },
-  themeSummaries: const <AppThemeId, String>{
-    AppThemeId.currentTheme:
-        'Uma superfície de leitura azul-profunda mais luminosa, com realces em ciano e camadas mais claras.',
-    AppThemeId.editorialDawn:
-        'Um espaço claro com sensação de papel e acentos azuis limpos para destacar sinais importantes.',
-    AppThemeId.auroraGlass:
-        'Uma interface vítrea mais fria, em tons de teal, com profundidade suave e sensação mais translúcida.',
-  },
-);
+class PtStrings extends AppStrings {
+  const PtStrings();
+
+  @override
+  String get appName => 'Tech Brief';
+  @override
+  String get signalReader => 'Seu digest de tecnologia';
+
+  @override
+  String get tabFeed => 'Início';
+  @override
+  String get tabSettings => 'Configurações';
+  @override
+  String get channelAll => 'Tudo';
+  @override
+  String get channelTechNews => 'Mídia tech';
+  @override
+  String get channelIndieDev => 'Desenvolvimento indie';
+  @override
+  String get searchPlaceholder => 'Pesquisar artigos e fontes...';
+  @override
+  String get nextSyncLabel => 'Próxima sincronização em';
+  @override
+  String get syncingData => 'Sincronizando dados';
+  @override
+  String get emptyFeed => 'Esta lista está vazia.';
+  @override
+  String get loadFeedError => 'Não foi possível carregar o feed.';
+  @override
+  String get loadingMore => 'Carregando mais…';
+  @override
+  String get showingCached => 'Exibindo artigos em cache.';
+  @override
+  String itemsCount(int count) => '$count iten${count == 1 ? '' : 's'}';
+
+  @override
+  String get translationInProgress => 'Traduzindo';
+  @override
+  String get translationFailed => 'Falha na tradução';
+  @override
+  String get openSourceLink => 'Abrir link da fonte';
+  @override
+  String get previousArticle => 'Anterior';
+  @override
+  String get nextArticle => 'Próximo';
+
+  @override
+  String get settings => 'Configurações';
+  @override
+  String get workspaceSettings => 'Configurações de aparência';
+  @override
+  String get workspaceSettingsDesc =>
+      'Escolha o tema visual usado em todo o leitor.';
+  @override
+  String get theme => 'Tema';
+  @override
+  String get themeDescription =>
+      'As mudanças de tema são aplicadas imediatamente e salvas neste dispositivo.';
+  @override
+  String get active => 'Ativo';
+  @override
+  String get apply => 'Aplicar';
+
+  @override
+  String themeLabel(AppThemeId id) => switch (id) {
+    AppThemeId.current => 'Sinal profundo',
+    AppThemeId.dawn => 'Edição da manhã',
+    AppThemeId.aurora => 'Vidro aurora',
+  };
+
+  @override
+  String themeSummary(AppThemeId id) => switch (id) {
+    AppThemeId.current =>
+      'Uma superfície de leitura azul-profunda mais luminosa, com realces em ciano e camadas mais claras.',
+    AppThemeId.dawn =>
+      'Um espaço claro com sensação de papel e acentos azuis limpos para destacar sinais importantes.',
+    AppThemeId.aurora =>
+      'Uma interface vítrea mais fria, em tons de teal, com profundidade suave e sensação mais translúcida.',
+  };
+
+  @override
+  String relativeTime(DateTime dt) {
+    String unit(int value, String singular, [String? plural]) {
+      return 'há $value ${value == 1 ? singular : plural ?? '${singular}s'}';
+    }
+
+    return formatRelativeTime(
+      dt,
+      now: 'agora mesmo',
+      minute: (value) => unit(value, 'minuto'),
+      hour: (value) => unit(value, 'hora'),
+      day: (value) => unit(value, 'dia'),
+      month: (value) => unit(value, 'mês', 'meses'),
+      year: (value) => unit(value, 'ano'),
+    );
+  }
+
+  @override
+  String readTime(int minutes) => '$minutes min';
+}

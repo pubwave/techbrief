@@ -1,6 +1,7 @@
 import { load } from "cheerio";
 import { sanitizeArticleText, type SourceDefinition } from "@techbrief/shared";
 import type { HtmlSourceRule } from "./types.js";
+import { normalizePublishedAt } from "../shared/date-utils.js";
 
 function buildHackerNewsListingExtractor(html: string): Array<{ title: string; originalUrl: string }> {
   const $ = load(html);
@@ -17,6 +18,32 @@ function buildHackerNewsListingExtractor(html: string): Array<{ title: string; o
   });
 
   return items;
+}
+
+function buildAnthropicNewsroomListingExtractor(
+  html: string,
+  source: SourceDefinition
+): Array<{ title: string; originalUrl: string; summary?: string; publishedAt?: string }> {
+  const items: Array<{ title: string; originalUrl: string; summary?: string; publishedAt?: string }> = [];
+  const $ = load(html);
+
+  $("a[class*='PublicationList'][href]").each((_, element) => {
+    const href = $(element).attr("href")?.trim();
+    const title = sanitizeArticleText($(element).find("span[class*='title']").first().text()) ?? sanitizeArticleText($(element).text());
+    const publishedAt = normalizePublishedAt($(element).find("time").first().text());
+
+    if (!href || !title || !publishedAt) {
+      return;
+    }
+
+    items.push({
+      title,
+      originalUrl: new URL(href, source.homepage).toString(),
+      publishedAt
+    });
+  });
+
+  return items.sort((left, right) => Date.parse(right.publishedAt ?? "") - Date.parse(left.publishedAt ?? ""));
 }
 
 function buildHashnodeTagListingExtractor(
@@ -117,7 +144,10 @@ const genericRule: HtmlSourceRule = {
 export const HTML_SOURCE_RULES: Record<string, HtmlSourceRule> = {
   "anthropic-news": {
     ...genericRule,
-    articleLinkPatterns: [/\/news\//]
+    maxArticles: 20,
+    articleLinkPatterns: [/\/news\//],
+    useGenericAnchorScan: false,
+    listingExtractor: (html, source) => buildAnthropicNewsroomListingExtractor(html, source)
   },
   "google-deepmind-blog": {
     ...genericRule,
@@ -177,19 +207,6 @@ export const HTML_SOURCE_RULES: Record<string, HtmlSourceRule> = {
     articleLinkPatterns: [],
     useGenericAnchorScan: false,
     listingExtractor: (html) => buildHashnodeTagListingExtractor(html)
-  },
-  "product-hunt-launches": {
-    ...genericRule,
-    listingUrl: "https://www.producthunt.com/",
-    articleLinkPatterns: [/\/posts\//],
-    titleSelectors: ["meta[property='og:title']", "h1", "[data-test='product-name']"],
-    summarySelectors: [
-      "meta[name='description']",
-      "meta[property='og:description']",
-      "[data-test='tagline']",
-      "article p",
-      "main p"
-    ]
   },
   "hackernews-frontpage": {
     ...genericRule,

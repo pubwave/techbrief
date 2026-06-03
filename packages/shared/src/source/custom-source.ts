@@ -48,13 +48,15 @@ export function toCustomSourceDefinition(input: CustomSourceInput): SourceDefini
     name: input.name,
     category: input.category,
     preset: "custom",
-    state: "custom-pending",
+    state: "enabled",
     access: "public",
     homepage: input.homepage,
     discoveryMethod: inferDiscoveryMethod(input),
     linkScope: "same-site",
     description: `${input.name} custom source`,
-    tags: [input.category, "custom"]
+    tags: [input.category, "custom"],
+    // Custom sources default to a mid baseline; user-adjustable afterwards.
+    priority: 10
   };
 
   if (input.feedUrl) {

@@ -9,7 +9,7 @@
     "check": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@pubwave/editor": "^0.5.8",
+    "@pubwave/editor": "^1.0.0",
     "@techbrief/converter": "0.1.0",
     "@techbrief/shared": "0.1.0",
     "@tailwindcss/vite": "^4.2.2",

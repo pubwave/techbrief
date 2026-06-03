@@ -1,40 +1,57 @@
-# TechBrief CLI
+# TechBrief
 
-Install:
+The command that runs TechBrief — your personal reader for global tech news and
+indie‑dev writing, with AI summaries and translation.
+
+## Install
+
+You need [Node.js 20 or newer](https://nodejs.org/).
 
 ```bash
-npm install -g techbrief
+npm install -g @pubwave/techbrief
 ```
 
-Run the default product flow:
+## Start it
 
 ```bash
 techbrief
 ```
 
-On the first run, TechBrief opens an Ink setup guide so the user can choose:
+On the first run, a short setup guide asks for:
 
-- default language
-- model source: local or cloud
-- AI provider when cloud mode is selected
-- a single AI model used for summary, translation, and keywords
-- freshness window
+- the language you want to read in
+- whether to use a local AI (Ollama) or a cloud one (OpenAI, Anthropic,
+  OpenRouter)
 
-Useful commands:
+Then TechBrief starts up and opens the reader in your browser. Run `techbrief`
+again any time to open it.
 
-- `techbrief setup`
-- `techbrief launch`
-- `techbrief doctor`
-- `techbrief config get`
-- `techbrief source list`
-- `techbrief sync`
-- `techbrief mobile run android`
-- `techbrief mobile run ios`
+## Commands
 
-Default launch behavior:
+| Command | What it does |
+| --- | --- |
+| `techbrief` | Start everything and open the reader |
+| `techbrief setup` | Change your language or AI settings |
+| `techbrief sync` | Fetch the latest articles now |
+| `techbrief source list` | See where articles come from |
+| `techbrief doctor` | Check that everything is set up correctly |
+| `techbrief mobile run ios` | Install and open the app on your iPhone |
+| `techbrief mobile run android` | Install and open the app on your Android |
 
-- Reuses the local monorepo during development, or downloads the TechBrief template into `.techbrief/runtime/workspace` when installed as a standalone CLI.
-- Starts the API and web servers in the background.
-- Opens the browser unless `--no-open` is passed.
-- Attempts mobile install only when a supported connected device is detected.
-- Mobile install downloads the project archive directly into a temporary directory and deletes it after the run unless `--keep-temp` is passed.
+Add `--help` to any command to see its options, e.g. `techbrief sync --help`.
+
+## Reading on your phone
+
+Connect your phone to the same Wi‑Fi as your computer, then:
+
+```bash
+techbrief mobile run ios       # or: android
+```
+
+The app installs and points at the TechBrief running on your computer.
+
+## Notes
+
+- Everything runs on your own computer; the web reader is at
+  `http://127.0.0.1:9540`.
+- Start without opening the browser with `techbrief --no-open`.

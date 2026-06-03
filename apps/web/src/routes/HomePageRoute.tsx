@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useAppRuntime } from "../app/AppRuntimeContext";
+import { useAppRuntime } from "../app/app-runtime";
 import { ChannelTabs } from "../components/ChannelTabs";
 import { HomeDesktopView } from "../components/HomeDesktopView";
 import { HomeMobileView } from "../components/HomeMobileView";
@@ -14,13 +14,15 @@ export function HomePageRoute() {
   const navigate = useNavigate();
   const { isDesktop, locale, strings, theme } = useAppRuntime();
   const state = useFeedState(strings, locale, true);
+  const selectedId = state.selectedId;
+  const setSelectedId = state.setSelectedId;
   const isDetailRoute = !isDesktop && Boolean(articleId);
 
   useEffect(() => {
-    if (articleId && articleId !== state.selectedId) {
-      state.setSelectedId(articleId);
+    if (articleId && articleId !== selectedId) {
+      setSelectedId(articleId);
     }
-  }, [articleId, state.selectedId, state.setSelectedId]);
+  }, [articleId, selectedId, setSelectedId]);
 
   function handleChannelChange(channel: ChannelFilter) {
     state.setChannel(channel);
@@ -63,6 +65,9 @@ export function HomePageRoute() {
           selectedId={state.selectedId}
           strings={strings}
           theme={theme}
+          newCount={state.newCount}
+          newIds={state.newIds}
+          onDismissNew={state.dismissNewCount}
           total={state.total}
           translationError={state.translationError}
         />
@@ -86,6 +91,9 @@ export function HomePageRoute() {
         isTranslating={state.isTranslating}
         items={state.items}
         locale={locale}
+        newCount={state.newCount}
+        newIds={state.newIds}
+        onDismissNew={state.dismissNewCount}
         onBackToList={() => navigate("/")}
         onLoadMore={state.loadNextPage}
         onOpenDetail={handleOpenDetail}

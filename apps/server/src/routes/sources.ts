@@ -39,7 +39,7 @@ export async function handleSourcesRoute(context: RequestContext): Promise<void>
       return;
     }
 
-    const body = await readJsonBody<{ state: "active" | "disabled" }>(request);
+    const body = await readJsonBody<{ state: "enabled" | "disabled" }>(request);
     const updated = await updateSourceState(sourceId, body.state);
     sendJson(response, updated ? 200 : 404, updated ?? { error: "Source was not found." });
     return;

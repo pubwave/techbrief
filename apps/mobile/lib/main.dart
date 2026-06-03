@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:techbrief_mobile/src/app.dart';
+
+import 'src/app.dart';
+import 'src/storage/settings_store.dart';
 
 void main() {
-  runApp(const TechBriefApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(TechBriefApp(store: SettingsStore()));
 }

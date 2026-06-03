@@ -5,7 +5,8 @@ import { getChannelLabel } from "../lib/format";
 import type { ChannelFilter, FeedArticle } from "../types/feed";
 import { ArticleCard } from "./ArticleCard";
 import { FeedPaneSkeleton } from "./FeedPaneSkeleton";
-import type { CardStyle } from "./TweaksPanel";
+import { SyncStatusBar } from "./SyncStatusBar";
+import type { CardStyle } from "./tweaks";
 import { SearchIcon } from "./icons/ReaderIcons";
 
 interface DesktopFeedPaneProps {
@@ -13,6 +14,9 @@ interface DesktopFeedPaneProps {
   items: FeedArticle[];
   listScrollRef: React.RefObject<HTMLDivElement | null>;
   total: number;
+  newCount?: number;
+  newIds?: Set<string> | undefined;
+  onDismissNew?: (() => void) | undefined;
   search: string;
   channel: ChannelFilter;
   hasMore?: boolean;
@@ -37,6 +41,9 @@ export function DesktopFeedPane({
   items,
   listScrollRef,
   total,
+  newCount = 0,
+  newIds,
+  onDismissNew,
   search,
   channel,
   hasMore = false,
@@ -73,13 +80,35 @@ export function DesktopFeedPane({
       style={{ width: `${listWidth}px` }}
     >
       <header className="shrink-0 border-b border-tb-border-subtle px-[18px] pt-[14px] pb-[10px]">
-        <div className="mb-[10px] flex items-center">
-          <span className="flex-1 text-[13px] font-bold tracking-[-0.01em] text-tb-text-primary">
-            Tech Brief
-          </span>
-          <span className="rounded-[10px] bg-tb-surface-button px-[9px] py-[3px] text-[12px] font-medium text-tb-text-muted">
-            {strings.itemsCount(total)}
-          </span>
+        <div className="mb-[10px] flex items-start gap-2">
+          <div className="flex flex-1 flex-col">
+            <span className="text-[13px] font-bold tracking-[-0.01em] text-tb-text-primary">
+              Tech Brief
+            </span>
+            <span className="text-[11px] text-tb-text-muted">
+              {strings.signalReader}
+            </span>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-1.5">
+              <span className="rounded-[10px] bg-tb-surface-button px-[9px] py-[3px] text-[12px] font-medium text-tb-text-muted">
+                {strings.itemsCount(total)}
+              </span>
+              {newCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    listScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+                    onDismissNew?.();
+                  }}
+                  className="animate-pulse cursor-pointer rounded-full border border-tb-accent px-1.5 py-0.5 text-[10px] font-bold text-tb-accent transition-colors hover:bg-tb-accent/10"
+                >
+                  +{newCount} New
+                </button>
+              )}
+            </div>
+            <SyncStatusBar strings={strings} variant="compact" />
+          </div>
         </div>
 
         <div className="mb-3 flex items-center gap-2">
@@ -125,11 +154,11 @@ export function DesktopFeedPane({
         </div>
       </header>
 
-      <div className="flex shrink-0 items-center justify-between px-[18px] py-2">
-        <span className="text-[11px] font-medium uppercase tracking-[0.04em] text-tb-text-muted">
+      <div className="flex shrink-0 items-center justify-between gap-3 px-[18px] py-2">
+        <span className="min-w-0 truncate text-[11px] font-medium uppercase tracking-[0.04em] text-tb-text-muted">
           {strings.sortHint}
         </span>
-        <span className="text-[11px] font-medium text-tb-text-muted">
+        <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-tb-text-muted">
           {strings.itemsCount(items.length)}
         </span>
       </div>
@@ -153,6 +182,7 @@ export function DesktopFeedPane({
                 <ArticleCard
                   article={article}
                   cardStyle={cardStyle}
+                  isNew={newIds?.has(article.id) ?? false}
                   locale={locale}
                   onSelect={onSelect}
                   selected={article.id === selectedId}

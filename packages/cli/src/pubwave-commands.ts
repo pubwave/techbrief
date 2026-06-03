@@ -93,7 +93,7 @@ export const techbriefCommands: Command[] = [
     name: "source enable",
     description: "Enable a feed source.",
     options: ["id"],
-    run: async (_context, options) => sourceStateView("active", options)
+    run: async (_context, options) => sourceStateView("enabled", options)
   },
   {
     name: "source disable",
@@ -109,7 +109,7 @@ export const techbriefCommands: Command[] = [
   {
     name: "schedule set",
     description: "Update schedule configuration.",
-    options: ["mode", "interval-hours", "cron", "timezone"],
+    options: ["mode", "interval-minutes", "cron"],
     run: async (_context, options) => scheduleSetView(options)
   }
 ];

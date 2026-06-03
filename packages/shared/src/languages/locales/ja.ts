@@ -4,6 +4,11 @@ export const jaCatalog: TechBriefLocaleCatalog = {
   stageTitle: "TechBrief を起動中",
   readyTitle: "TechBrief が稼働中",
   readyHint: "上記の URL を開いて利用してください。",
+  launchFailedLabel: "起動に失敗しました",
+  serviceFailedLabel: "サービスに失敗しました",
+  serviceStartFailedLabel: "サービスの起動に失敗しました",
+  runtimeLabel: "実行ディレクトリ",
+  noneLabel: "なし",
   substageLabels: {
     "prepare-runtime": "ランタイムを準備中",
     "stop-old-services": "既存サービスを停止中",

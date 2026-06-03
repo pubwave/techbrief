@@ -1,7 +1,8 @@
 import { load } from "cheerio";
-import { sanitizeArticleText, type SourceDefinition } from "@techbrief/shared";
+import { isArticleLinkAllowedForSource, sanitizeArticleText, type SourceDefinition } from "@techbrief/shared";
 import { normalizeArticleUrl } from "@techbrief/feed-rules";
 import type { HtmlArticleCandidate, HtmlSourceRule } from "./types.js";
+import { extractPublishedAtFromUrl, normalizePublishedAt } from "../shared/date-utils.js";
 
 function toAbsoluteUrl(input: string, source: SourceDefinition): string {
   try {
@@ -16,7 +17,24 @@ function matchesPatterns(url: string, patterns: RegExp[]): boolean {
     return true;
   }
 
-  return patterns.some((pattern) => pattern.test(url));
+  let pathname = url;
+  try {
+    pathname = new URL(url).pathname;
+  } catch {
+    // Keep the raw URL candidate for malformed or relative inputs.
+  }
+
+  return patterns.some((pattern) => pattern.test(url) || pattern.test(pathname));
+}
+
+function isSamePageAnchor(url: string, source: SourceDefinition): boolean {
+  try {
+    const candidate = new URL(url);
+    const homepage = new URL(source.homepage);
+    return candidate.origin === homepage.origin && candidate.pathname === homepage.pathname && Boolean(candidate.hash);
+  } catch {
+    return false;
+  }
 }
 
 export function extractArticleCandidates(html: string, source: SourceDefinition, rule: HtmlSourceRule): HtmlArticleCandidate[] {
@@ -42,13 +60,24 @@ export function extractArticleCandidates(html: string, source: SourceDefinition,
     const absoluteUrl = toAbsoluteUrl(href, source);
     const isHttpUrl = absoluteUrl.startsWith("http://") || absoluteUrl.startsWith("https://");
 
-    if (!isHttpUrl || !matchesPatterns(absoluteUrl, rule.articleLinkPatterns)) {
+    if (
+      !isHttpUrl ||
+      !isArticleLinkAllowedForSource(source, absoluteUrl) ||
+      isSamePageAnchor(absoluteUrl, source) ||
+      !matchesPatterns(absoluteUrl, rule.articleLinkPatterns)
+    ) {
       return;
     }
 
-    const title = sanitizeArticleText($(element).text()) ?? undefined;
+    const dateElement = $(element).find("time").first();
+    const contextDateElement = $(element).closest("article, li, section, div").find("time").first();
+    const dateSource = dateElement.length > 0 ? dateElement : contextDateElement;
+    const publishedAt = normalizePublishedAt(dateSource.attr("datetime")?.trim() ?? dateSource.text().trim()) ?? extractPublishedAtFromUrl(absoluteUrl);
+    const titleElement = $(element).find("h1, h2, h3, h4, h5, h6").first();
+    const title = sanitizeArticleText(titleElement.length > 0 ? titleElement.text() : $(element).text()) ?? undefined;
     candidates.push({
       ...(title ? { title } : {}),
+      ...(publishedAt ? { publishedAt } : {}),
       originalUrl: absoluteUrl
     });
   });

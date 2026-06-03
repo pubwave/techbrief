@@ -85,6 +85,32 @@ export async function markSourceSchedulerRun(
   return next;
 }
 
+export async function markSchedulerSourcesRun(sourceIds: string[], runAt: string): Promise<SchedulerRunState> {
+  const current = await loadSchedulerRunState();
+  const perSourceLastRunAt = { ...current.perSourceLastRunAt };
+  const perSourceState = { ...current.perSourceState };
+
+  for (const sourceId of sourceIds) {
+    perSourceLastRunAt[sourceId] = runAt;
+    perSourceState[sourceId] = {
+      ...(perSourceState[sourceId] ?? {}),
+      lastRunAt: runAt,
+      lastStatus: "success"
+    };
+  }
+
+  const next: SchedulerRunState = {
+    ...current,
+    globalLastRunAt: runAt,
+    globalLastStatus: "success",
+    perSourceLastRunAt,
+    perSourceState,
+    recentErrors: current.recentErrors
+  };
+  await saveSchedulerRunState(next);
+  return next;
+}
+
 export async function recordSchedulerSourceFailure(sourceId: string, runAt: string, message: string): Promise<SchedulerRunState> {
   const current = await loadSchedulerRunState();
   const next: SchedulerRunState = {
@@ -92,6 +118,13 @@ export async function recordSchedulerSourceFailure(sourceId: string, runAt: stri
     globalLastRunAt: runAt,
     globalLastStatus: "failed",
     globalLastError: message,
+    // Advance the due-check anchor on failure too, so a persistently failing
+    // source waits for its next scheduled slot instead of being retried on
+    // every poll tick.
+    perSourceLastRunAt: {
+      ...current.perSourceLastRunAt,
+      [sourceId]: runAt
+    },
     perSourceState: {
       ...current.perSourceState,
       [sourceId]: {

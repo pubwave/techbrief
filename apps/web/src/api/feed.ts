@@ -4,7 +4,7 @@ import { fetchJson, resolveApiInput } from "./http";
 export async function fetchFeed(
   channel: ChannelFilter,
   language: string,
-  page: FeedPageRequest
+  page: FeedPageRequest & { since?: string; search?: string }
 ): Promise<FeedListResponse> {
   const params = new URLSearchParams();
   if (channel !== "all") {
@@ -13,7 +13,48 @@ export async function fetchFeed(
   params.set("language", language);
   params.set("limit", String(page.limit));
   params.set("offset", String(page.offset));
+  if (page.since) {
+    params.set("since", page.since);
+  }
+  if (page.search) {
+    params.set("q", page.search);
+  }
   return fetchJson<FeedListResponse>(`/v1/feed?${params.toString()}`);
+}
+
+export function streamFeedEvents(onUpdate: () => void): () => void {
+  // Single reconnect chain with a tracked current source. The previous version
+  // reconnected by re-calling streamFeedEvents() recursively, but the cleanup it
+  // returned only closed the *first* EventSource — every reconnect leaked an
+  // orphaned source that kept firing feed_updated, multiplying refetches.
+  let closed = false;
+  let current: EventSource | null = null;
+  let retryTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const connect = (): void => {
+    if (closed) return;
+    const events = new EventSource(resolveApiInput("/v1/feed/events"));
+    current = events;
+
+    events.addEventListener("feed_updated", () => {
+      onUpdate();
+    });
+
+    events.onerror = () => {
+      events.close();
+      if (closed) return;
+      clearTimeout(retryTimer);
+      retryTimer = setTimeout(connect, 5_000);
+    };
+  };
+
+  connect();
+
+  return () => {
+    closed = true;
+    clearTimeout(retryTimer);
+    current?.close();
+  };
 }
 
 export async function fetchArticle(id: string, language: string): Promise<FeedArticle> {

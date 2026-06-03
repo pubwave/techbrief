@@ -92,4 +92,15 @@ export function initializeArticleSchema(db: Database.Database): void {
       FOREIGN KEY(sync_run_id) REFERENCES sync_runs(id) ON DELETE CASCADE
     );
   `);
+
+  ensureColumn(db, "article_records", "source_url", "TEXT");
+}
+
+function ensureColumn(db: Database.Database, tableName: string, columnName: string, definition: string): void {
+  const columns = db.pragma(`table_info(${tableName})`) as Array<{ name: string }>;
+  if (columns.some((column) => column.name === columnName)) {
+    return;
+  }
+
+  db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
 }

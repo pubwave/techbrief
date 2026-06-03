@@ -6,7 +6,7 @@ import http from "node:http";
 import https from "node:https";
 
 const webRoot = process.env.TECHBRIEF_WEB_DIST ?? "";
-const apiBaseUrl = process.env.TECHBRIEF_API_BASE_URL ?? "http://127.0.0.1:9541";
+const apiBaseUrl = process.env.API_BASE_URL ?? "http://127.0.0.1:9541";
 const host = process.env.HOST ?? "127.0.0.1";
 const port = Number.parseInt(process.env.PORT ?? "9540", 10);
 

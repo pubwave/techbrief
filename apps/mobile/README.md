@@ -1,16 +1,35 @@
-# techbrief_mobile
+# TechBrief Mobile
 
-A new Flutter project.
+The TechBrief reader app for iPhone and Android. It shows the same articles,
+AI summaries, and translations as the web reader — on your phone.
 
-## Getting Started
+## Easiest way to run it
 
-This project is a starting point for a Flutter application.
+The app reads from the TechBrief running on your computer, so start that first
+(`techbrief` on your computer). Then, with your phone on the same Wi‑Fi:
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+techbrief mobile run ios       # or: android
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+That installs the app and connects it to your computer automatically.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## First launch on iPhone
+
+iOS asks for permission to find devices on your local network. Tap **Allow** —
+the app needs it to reach the TechBrief on your computer. If the list looks
+empty the very first time, wait a second; it loads on its own once permission is
+granted.
+
+## Running from source (for developers)
+
+This is a standard Flutter app. You need the
+[Flutter SDK](https://docs.flutter.dev/get-started/install).
+
+```bash
+flutter pub get
+flutter run --dart-define=API_BASE_URL=http://<your-computer-ip>:9541
+```
+
+Use your computer's local IP (not `127.0.0.1`) so the phone can reach it over
+Wi‑Fi.

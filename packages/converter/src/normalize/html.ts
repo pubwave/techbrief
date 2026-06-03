@@ -13,12 +13,15 @@ import {
 import type { ContentAstDocument } from "../ast/types.js";
 import { normalizeWhitespace } from "./common.js";
 import { parseMarkdownAst } from "../parse/markdown-ast.js";
-import { htmlInlineToMarkdown, htmlInlineToPlainText, parseInlineMarkdownText } from "../parse/inline-text.js";
+import { htmlInlineToMarkdown, parseInlineMarkdownText } from "../parse/inline-text.js";
 import type { SourceContentProfile } from "../profiles/source-profiles.js";
 import { sanitizeHtml, stripHtmlTags } from "../sanitize.js";
+import { decodeHtmlEntities } from "../html-entities.js";
 
 const BLOCK_PATTERN =
   /<pre\b[^>]*>[\s\S]*?<\/pre>|<table\b[^>]*>[\s\S]*?<\/table>|<blockquote\b[^>]*>[\s\S]*?<\/blockquote>|<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]>|<(ul|ol)\b[^>]*>[\s\S]*?<\/\1>|<img\b[^>]*>|<iframe\b[^>]*>[\s\S]*?<\/iframe>|<hr\b[^>]*\/?>|<(p|div|section|article)\b[^>]*>[\s\S]*?<\/\2>/gi;
+const CHILD_BLOCK_PATTERN =
+  /<(pre|table|blockquote|h[1-6]|ul|ol|img|iframe|hr|p|div|section|article)\b/i;
 const ROW_PATTERN = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
 const CELL_PATTERN = /<(td|th)\b[^>]*>([\s\S]*?)<\/\1>/gi;
 const LIST_ITEM_PATTERN = /<li\b[^>]*>([\s\S]*?)<\/li>/gi;
@@ -100,13 +103,26 @@ function mapHtmlBlock(block: string, profile: SourceContentProfile): ContentAstD
     case "hr":
       return [createHorizontalRuleNode()];
     case "p":
+      return inlineContent(block).length > 0 ? [createParagraphNode(inlineContent(block))] : [];
     case "div":
     case "section":
     case "article":
-      return inlineContent(block).length > 0 ? [createParagraphNode(inlineContent(block))] : [];
+      return mapHtmlContainerBlock(block, profile);
     default:
       return [];
   }
+}
+
+function mapHtmlContainerBlock(block: string, profile: SourceContentProfile): ContentAstDocument["content"] {
+  const inner = removeOuterTag(block);
+  if (CHILD_BLOCK_PATTERN.test(inner)) {
+    const childBlocks = extractHtmlBlocks(inner, profile);
+    if (childBlocks.length > 0) {
+      return childBlocks;
+    }
+  }
+
+  return inlineContent(block).length > 0 ? [createParagraphNode(inlineContent(block))] : [];
 }
 
 function stripKnownBlocks(input: string): string {
@@ -178,14 +194,4 @@ function inferEmbedProvider(url: string): string | undefined {
 
 function removeOuterTag(value: string): string {
   return value.replace(/^<[^>]+>/, "").replace(/<\/[^>]+>$/, "");
-}
-
-function decodeHtmlEntities(value: string): string {
-  return value
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, "\"")
-    .replace(/&#39;/gi, "'");
 }

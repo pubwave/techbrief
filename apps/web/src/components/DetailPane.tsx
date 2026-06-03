@@ -1,15 +1,18 @@
-import { useAppRuntime } from "../app/AppRuntimeContext";
+import { useAppRuntime } from "../app/app-runtime";
 import type { Locale, Strings } from "../i18n/types";
 import { useDetailScrollChrome } from "../hooks/useDetailScrollChrome";
 import { useDetailScrollRelay } from "../hooks/useDetailScrollRelay";
 import { formatRelativeTimestamp } from "../lib/format";
+import { resolveArticleDisplayContent } from "../lib/article-display";
+import { estimateReadMinutes } from "../lib/reading-time";
 import { ui } from "../lib/ui";
 import type { ThemeId } from "../theme/themes";
 import type { FeedArticle } from "../types/feed";
 import { ArticleDetailContent } from "./ArticleDetailContent";
 import { DetailPaneSkeleton } from "./DetailPaneSkeleton";
 import { SourceAvatar } from "./SourceAvatar";
-import { TweaksPanel, type TweaksState } from "./TweaksPanel";
+import { TweaksPanel } from "./TweaksPanel";
+import type { TweaksState } from "./tweaks";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -48,7 +51,7 @@ export function DetailPane({
   strings,
   theme,
   isLoading = false,
-  isTranslating: _isTranslating = false,
+  isTranslating = false,
   translationError = null,
   tweaks,
   onTweaksChange
@@ -155,12 +158,27 @@ export function DetailPane({
             {readTime}
           </span>
         </div>
+        {isTranslating ? (
+          <div className="flex flex-1 items-center justify-center gap-[6px] text-[12px] text-tb-accent">
+            <span>{strings.translationInProgress}</span>
+            <span aria-hidden className="flex items-center gap-[3px]">
+              <span className="h-[4px] w-[4px] rounded-full bg-tb-accent" style={{ animation: "tb-dot-pulse 0.9s ease-in-out 0s infinite" }} />
+              <span className="h-[4px] w-[4px] rounded-full bg-tb-accent" style={{ animation: "tb-dot-pulse 0.9s ease-in-out 0.15s infinite" }} />
+              <span className="h-[4px] w-[4px] rounded-full bg-tb-accent" style={{ animation: "tb-dot-pulse 0.9s ease-in-out 0.3s infinite" }} />
+            </span>
+          </div>
+        ) : (
+          <div className="flex flex-1 items-center justify-center">
+            <span className="text-[11px] text-red-400">{strings.copyrightNotice}</span>
+          </div>
+        )}
         <div className="flex shrink-0 items-center gap-1">
           <ToolbarButton
             label={strings.openSourceLink}
             onClick={() => {
-              if (article.originalUrl) {
-                window.open(article.originalUrl, "_blank", "noopener,noreferrer");
+              const sourceUrl = article.sourceUrl ?? article.originalUrl;
+              if (sourceUrl) {
+                window.open(sourceUrl, "_blank", "noopener,noreferrer");
               }
             }}
           >
@@ -321,8 +339,8 @@ function PrevNextCard({ article, direction, label, onClick }: PrevNextCardProps)
 }
 
 function estimateReadTime(article: FeedArticle): string {
-  const text = article.bodyNormalized ?? article.summary ?? "";
-  const words = text.trim().split(/\s+/).filter(Boolean).length;
-  const minutes = Math.max(1, Math.round(words / 220));
+  const displayContent = resolveArticleDisplayContent(article);
+  const text = displayContent.bodyNormalized ?? displayContent.summary ?? "";
+  const minutes = estimateReadMinutes(text);
   return `${minutes} min`;
 }

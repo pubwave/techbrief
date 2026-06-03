@@ -39,6 +39,13 @@ export interface HttpProviderOptions {
   model: string;
   apiKey: string;
   baseUrl: string;
+  /**
+   * Disable chain-of-thought reasoning for reasoning-capable models (e.g. Ollama
+   * qwen3). Sends `reasoning_effort: "none"` so the model spends its output budget
+   * on the translation itself instead of long thinking, which otherwise leaves the
+   * translated body empty/short and fails language validation.
+   */
+  disableReasoning?: boolean;
 }
 
 export type AiRuntimeConfig = AiConfig;

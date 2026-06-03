@@ -1,46 +1,94 @@
-import '../../theme/app_theme.dart';
+import '../../theme/palette.dart';
 import '../app_strings.dart';
 
-final AppStrings zhCnStrings = AppStrings(
-  menuFeed: '信息流',
-  menuSettings: '设置',
-  signalReader: '信号阅读器',
-  channel: '频道',
-  techNewsFilter: '主流公司与媒体',
-  indieDevFilter: '独立开发者',
-  itemsCount: (value) => '$value 条',
-  searchPlaceholder: '搜索公司、发布、创始人……',
-  backToFeed: '<- 信息流',
-  openSourceLink: '打开源链接',
-  unableToOpenSourceLink: '无法打开源链接。',
-  settingsTitle: '设置',
-  settingsDescription: '将应用连接到你的 TechBrief 服务，再把最新文章同步到本地 SQLite。',
-  apiBaseUrl: 'API 地址',
-  apiBaseUrlHint: 'http://127.0.0.1:4310',
-  apiBaseUrlHelp: 'Android 模拟器通常需要用 10.0.2.2。iOS 模拟器和桌面端可以用 127.0.0.1。',
-  saveServer: '保存服务地址',
-  syncNow: '立即同步',
-  syncingNow: '同步中…',
-  savedServerAddress: '服务地址已保存。',
-  syncingLatestArticles: '正在同步最新文章…',
-  syncedArticles: (count, baseUrl) => '已从 $baseUrl 同步 $count 篇文章。',
-  usingLocalCache: (error) => '正在使用本地缓存。$error',
-  themeTitle: '主题',
-  themeDescription: '保留当前视觉作为默认主题，或切换到其他视觉方向。',
-  active: '当前',
-  apply: '应用',
-  minutesAgo: (value) => '$value 分钟前',
-  hoursAgo: (value) => '$value 小时前',
-  daysAgo: (value) => '$value 天前',
-  justNow: '刚刚',
-  themeLabels: const <AppThemeId, String>{
-    AppThemeId.currentTheme: '当前主题',
-    AppThemeId.editorialDawn: '晨曦社论',
-    AppThemeId.auroraGlass: '极光玻璃',
-  },
-  themeSummaries: const <AppThemeId, String>{
-    AppThemeId.currentTheme: '保留当前这套深色阅读工作台与现有青色强调色。',
-    AppThemeId.editorialDawn: '更明亮的社论风界面，带暖中性色和克制的蓝色强调。',
-    AppThemeId.auroraGlass: '更冷静的玻璃感深色界面，带青绿高亮和更柔和的层次。',
-  },
-);
+class ZhCnStrings extends AppStrings {
+  const ZhCnStrings();
+
+  @override
+  String get appName => 'Tech Brief';
+  @override
+  String get signalReader => '精选速报';
+
+  @override
+  String get tabFeed => '首页';
+  @override
+  String get tabSettings => '设置';
+  @override
+  String get channelAll => '全部';
+  @override
+  String get channelTechNews => '科技媒体';
+  @override
+  String get channelIndieDev => '独立开发';
+  @override
+  String get searchPlaceholder => '搜索文章、来源……';
+  @override
+  String get nextSyncLabel => '下次同步';
+  @override
+  String get syncingData => '正在同步数据';
+  @override
+  String get emptyFeed => '当前列表为空';
+  @override
+  String get loadFeedError => '无法加载信息流。';
+  @override
+  String get loadingMore => '正在加载更多…';
+  @override
+  String get showingCached => '显示缓存内容。';
+  @override
+  String itemsCount(int count) => '$count 条';
+
+  @override
+  String get translationInProgress => '正在翻译';
+  @override
+  String get translationFailed => '翻译失败';
+  @override
+  String get openSourceLink => '打开源链接';
+  @override
+  String get previousArticle => '上一篇';
+  @override
+  String get nextArticle => '下一篇';
+
+  @override
+  String get settings => '设置';
+  @override
+  String get workspaceSettings => '外观设置';
+  @override
+  String get workspaceSettingsDesc => '选择阅读器使用的界面主题。';
+  @override
+  String get theme => '主题';
+  @override
+  String get themeDescription => '主题会立即生效，并保存在这台设备上。';
+  @override
+  String get active => '当前';
+  @override
+  String get apply => '应用';
+
+  @override
+  String themeLabel(AppThemeId id) => switch (id) {
+    AppThemeId.current => '深海信号',
+    AppThemeId.dawn => '晨光纸页',
+    AppThemeId.aurora => '极光玻璃',
+  };
+
+  @override
+  String themeSummary(AppThemeId id) => switch (id) {
+    AppThemeId.current => '更明亮的深海蓝阅读界面，保留青色高亮和清晰层次。',
+    AppThemeId.dawn => '带纸页质感的暖白界面，用干净的蓝色强调关键信息。',
+    AppThemeId.aurora => '偏冷调的青绿玻璃界面，层次更柔和，也更通透。',
+  };
+
+  @override
+  String relativeTime(DateTime dt) {
+    return formatRelativeTime(
+      dt,
+      now: '刚刚',
+      minute: (value) => '$value分钟前',
+      hour: (value) => '$value小时前',
+      day: (value) => '$value天前',
+      month: (value) => '$value个月前',
+      year: (value) => '$value年前',
+    );
+  }
+
+  @override
+  String readTime(int minutes) => '$minutes 分钟';
+}

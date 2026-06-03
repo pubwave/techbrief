@@ -1,4 +1,4 @@
-import { useAppRuntime } from "../app/AppRuntimeContext";
+import { useAppRuntime } from "../app/app-runtime";
 import { SettingsPane } from "../components/SettingsPane";
 import { themeOptions } from "../theme/themes";
 

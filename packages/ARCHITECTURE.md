@@ -30,15 +30,15 @@ This workspace is organized as a layered product stack.
 
 - `packages/cli`
   User-facing command flow, terminal UI, setup/install orchestration, and local machine integration.
-  Keep app entry wiring under `src/app`, command entrypoints under `src/commands`, feature-owned workflow and view code under `src/features/*`, and shared adapters/helpers under `src/shared` and `src/components`.
+  Keep CLI entry wiring in root `src/pubwave-*.ts` files and `src/index.ts`, command entrypoints under `src/commands`, feature-owned workflow code under `src/features/*`, and shared adapters/helpers under `src/shared` and `src/components`.
 
 ## CLI module boundaries
 
 Inside `packages/cli`, prefer these boundaries:
 
-- `src/app`
+- root `src/index.ts` / `src/pubwave-*.ts`
   Top-level CLI entry wiring only.
-  Keep argv parsing, launch option parsing, and app view dispatch assembly here.
+  Keep Pubwave CLI integration, launch option parsing, custom setup steps, stages, runtime hooks, and command registration here.
 
 - `src/commands`
   Thin command entry files grouped by command domain.
@@ -54,19 +54,9 @@ Inside `packages/cli`, prefer these boundaries:
   - `presentation/` for output/progress formatting helpers
   - root files like `types.ts`, `helpers.ts`, `layout.ts` only when shared across the feature
 
-- `src/features/mobile-install`
-  Mobile install workflow, Flutter/device discovery, install failure mapping, and mobile-install-only types.
-  Prefer:
-  - `workflow/` for install execution and Flutter preparation
-  - `discovery/` for phone and environment checks
-  - `errors/` for user-facing error normalization and failure mapping
-  - `logging/` for install logs
-  - `components/` for mobile-install-specific retry / device-choice views
-  - root `index.ts` and `types.ts` as the public surface
-
 - `src/components`
   Cross-feature UI primitives only.
-  Do not place setup- or mobile-specific workflow files here anymore.
+  Do not place setup-specific workflow files here anymore.
 
 - `src/shared`
   Cross-feature helpers and adapters grouped by capability.
@@ -91,21 +81,15 @@ Inside `packages/cli`, prefer these boundaries:
   `src/features/setup/{types,helpers,layout}.ts`
 
 - Mobile install/runtime integration:
-  `src/features/mobile-install/components/*`
-  `src/features/mobile-install/workflow/*`
-  `src/features/mobile-install/discovery/*`
-  `src/features/mobile-install/errors/*`
-  `src/features/mobile-install/logging/*`
-  `src/features/mobile-install/{index,types,mobile-readiness,mobile-run,mobile-run-state}.ts`
+  handled by `@pubwave/cli` through the `features.mobile.flutter` configuration in TechBrief's CLI entrypoint.
 
 - App and command wiring:
-  `src/app/*`
+  `src/index.ts`
+  `src/pubwave-*.ts`
   `src/commands/core/*`
   `src/commands/config/*`
-  `src/commands/model/*`
   `src/commands/source/*`
   `src/commands/schedule/*`
-  `src/commands/doctor/*`
 
 - Shared CLI primitives:
   `src/components/*`
@@ -117,7 +101,7 @@ Inside `packages/cli`, prefer these boundaries:
 - Do not append new error classification logic to a view file.
 - Do not mix terminal rendering with machine/process orchestration in the same module.
 - Do not add new setup-specific files back under `src/components`.
-- Do not add new mobile-install-specific files back under `src/shared`.
+- Do not reintroduce TechBrief-owned mobile install workflows; use `@pubwave/cli` mobile features.
 - Do not reintroduce a flat `src/lib` catch-all directory.
 - Do not keep adding new command families as flat `src/commands/*.ts` files.
 - If a workflow file grows because of repeated state-shaping logic, extract state builders.
@@ -125,14 +109,6 @@ Inside `packages/cli`, prefer these boundaries:
 
 ## Recent structure improvements
 
-- Mobile retry error normalization moved out of `use-setup-launch.ts`
-- Setup flow moved from flat `src/components` files into `src/features/setup`
-- Setup feature now split into components, hooks, flow, state, and presentation sub-areas
-- Setup launch output/progress/state shaping split into focused helper modules
-- Setup launch flow orchestration split into main-flow and mobile-flow modules
-- Mobile install workflow moved from flat `src/lib/mobile*.ts` files into `src/features/mobile-install`
-- Mobile-install feature now split into workflow, discovery, errors, logging, and components sub-areas
-- Mobile device discovery, install failure summarization, and run workflow split into focused mobile-install modules
-- CLI entry wiring moved from flat root files into `src/app`
-- Core/config/model/source/schedule/doctor commands now grouped under `src/commands/<domain>`
+- TechBrief-owned mobile install workflow removed; mobile setup/install now belongs to `@pubwave/cli`
+- Unused legacy React command components removed; active CLI commands use line/section builders from `src/shared/ui`
 - Shared CLI helpers moved from flat `src/lib` into `src/shared/*` capability folders

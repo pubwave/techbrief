@@ -1,7 +1,6 @@
 import React from "react";
+import { availableOllamaModelChoices, defaultCloudModelProviders, defaultLocalModelChoices, installOllamaModel } from "@pubwave/cli";
 import { getAppStateDir, loadConfig, saveConfig, updateConfig } from "@techbrief/runtime";
-import { cloudModelChoices } from "../../features/cloud-model/index.js";
-import { availableLocalModelChoices, installLocalModelAsync } from "../../features/local-model/index.js";
 import { createLine, createSection } from "../../shared/ui/ui.js";
 import { workspaceRoot } from "../../shared/paths/workspace.js";
 
@@ -11,6 +10,10 @@ function inferModelSource(provider: string | undefined, current: "cloud" | "loca
   }
 
   return provider === "local" ? "local" : "cloud";
+}
+
+function defaultCloudModel(provider: string): string | undefined {
+  return defaultCloudModelProviders.find((entry) => entry.value === provider)?.models[0]?.value;
 }
 
 export async function configGetView(): Promise<React.ReactElement> {
@@ -60,8 +63,8 @@ export async function configSetView(options: Record<string, string | boolean>): 
         const nextModel = requestedModel
           ?? (requestedProvider
             ? (nextModelSource === "local"
-              ? (availableLocalModelChoices()[0]?.value ?? current.ai.model)
-              : (cloudModelChoices(nextProvider)[0]?.value ?? current.ai.model))
+              ? (availableOllamaModelChoices(defaultLocalModelChoices)[0]?.value ?? current.ai.model)
+              : (defaultCloudModel(nextProvider) ?? current.ai.model))
             : current.ai.model);
         const nextApiKey = nextModelSource === "local"
           ? ""
@@ -83,7 +86,7 @@ export async function configSetView(options: Record<string, string | boolean>): 
     && config.ai.provider === "local";
 
   if (shouldInstallLocalModel) {
-    const installResult = await installLocalModelAsync(config.ai.model);
+    const installResult = await installOllamaModel(config.ai.model, undefined, undefined, { autoInstallRuntime: true, autoStartRuntime: true });
     localInstallOk = installResult.ok;
     localInstallMessage = installResult.detail;
   }
@@ -108,7 +111,7 @@ export async function initView(options: Record<string, string | boolean>): Promi
       ? config.ai.apiKey
       : "";
   const nextModel = nextModelSource === "local" && config.ai.modelSource !== "local"
-    ? (availableLocalModelChoices()[0]?.value ?? "qwen2.5:7b")
+    ? (availableOllamaModelChoices(defaultLocalModelChoices)[0]?.value ?? "qwen2.5:7b")
     : config.ai.model;
   const nextConfig = {
     ...config,

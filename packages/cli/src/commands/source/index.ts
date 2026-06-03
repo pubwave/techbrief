@@ -57,11 +57,11 @@ export async function sourceAddView(options: Record<string, string | boolean>): 
   ]);
 }
 
-export async function sourceStateView(state: "active" | "disabled", options: Record<string, string | boolean>): Promise<React.ReactElement> {
+export async function sourceStateView(state: "enabled" | "disabled", options: Record<string, string | boolean>): Promise<React.ReactElement> {
   const sourceId = typeof options.id === "string" ? options.id : "";
   const updated = await updateSourceState(sourceId, state);
 
-  return createSection(state === "active" ? "Source Enabled" : "Source Disabled", [
+  return createSection(state === "enabled" ? "Source Enabled" : "Source Disabled", [
     createLine(updated ? `Source ${updated.id} -> ${updated.state}` : `Source '${sourceId}' was not found.`, updated ? "green" : "red")
   ]);
 }

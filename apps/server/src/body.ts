@@ -1,4 +1,5 @@
 import type { IncomingMessage } from "node:http";
+import { HttpError } from "./http-error.js";
 
 export async function readJsonBody<T>(request: IncomingMessage): Promise<T> {
   const chunks: Buffer[] = [];
@@ -8,8 +9,12 @@ export async function readJsonBody<T>(request: IncomingMessage): Promise<T> {
   }
 
   if (chunks.length === 0) {
-    throw new Error("Request body is required.");
+    throw new HttpError(400, "Request body is required.");
   }
 
-  return JSON.parse(Buffer.concat(chunks).toString("utf8")) as T;
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8")) as T;
+  } catch {
+    throw new HttpError(400, "Request body is not valid JSON.");
+  }
 }

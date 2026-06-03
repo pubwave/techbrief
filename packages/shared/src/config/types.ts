@@ -1,4 +1,4 @@
-import type { ContentType, SchedulePolicy } from "../content/types.js";
+import type { SchedulePolicy } from "../content/types.js";
 
 export interface AiConfig {
   modelSource: "cloud" | "local";
@@ -7,17 +7,15 @@ export interface AiConfig {
   apiKey: string;
 }
 
-export interface SourceCollectionConfig {
+export interface SourceItemConfig {
   enabled: boolean;
-  preset?: "core-default" | "custom";
-  items?: string[];
+  // Per-source ranking priority (higher = ranked higher in the feed). Defaults
+  // from the source definition; user-adjustable.
+  priority: number;
 }
 
-export interface CustomSourceConfig {
-  enabled: boolean;
-  requireValidation: boolean;
-  requireDeclaredCategory: boolean;
-  allowCategories: ContentType[];
+export interface SourcesConfig {
+  items: Record<string, SourceItemConfig>;
 }
 
 export interface AppConfig {
@@ -31,19 +29,12 @@ export interface AppConfig {
   };
   schedule: {
     mode: SchedulePolicy["mode"];
-    intervalHours?: number;
+    intervalMinutes?: number;
     cron?: string;
-    timezone: string;
-    perSource: Record<string, SchedulePolicy>;
   };
   ai: AiConfig;
   sources: {
-    techNews: SourceCollectionConfig;
-    indieDev: SourceCollectionConfig;
-    custom: CustomSourceConfig;
-  };
-  web: {
-    docker: boolean;
+    items: SourcesConfig["items"];
   };
   mobile: {
     ios: { enabled: boolean };

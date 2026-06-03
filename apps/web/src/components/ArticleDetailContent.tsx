@@ -30,7 +30,7 @@ export function ArticleDetailContent({
   return (
     <>
       {topBar ? <div className="mb-4">{topBar}</div> : null}
-      <Suspense fallback={<ArticleDetailEditorFallback strings={strings} />}>
+      <Suspense fallback={<ArticleDetailEditorFallback />}>
         <LazyArticleDetailEditor
           key={article.id}
           content={document}

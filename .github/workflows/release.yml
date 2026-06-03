@@ -1,0 +1,66 @@
+name: Release
+
+# Runs after the CI workflow succeeds on main. CI publishes to npm on a version
+# bump; this workflow then tags that commit and creates a GitHub Release with
+# auto-generated notes. It is idempotent: it acts only when the tag for the
+# current package version does not exist yet (i.e. right after a version bump).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  tag-and-release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          # Need full history + tags so we can diff against the previous release.
+          fetch-depth: 0
+
+      - name: Tag and create GitHub Release for a new version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Monorepo: track the published workspace package's version.
+          VERSION=$(node -p "require('./packages/cli/package.json').version")
+          TAG="v$VERSION"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists (no version bump); nothing to release."
+            exit 0
+          fi
+
+          echo "Tagging and releasing $TAG."
+          git tag "$TAG"
+          git push origin "$TAG"
+
+          # Build release notes from commit subjects since the previous tag.
+          # GitHub's --generate-notes only lists merged PRs, which is empty when
+          # commits are pushed straight to main, so we assemble the changelog
+          # ourselves from the git log between releases.
+          PREV_TAG=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || echo "")
+
+          {
+            if [ -n "$PREV_TAG" ]; then
+              RANGE="$PREV_TAG..$TAG"
+              echo "## What's Changed"
+              echo
+              git log --no-merges --pretty=format:'- %s (%h)' "$RANGE"
+              echo
+              echo
+              echo "**Full Changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${PREV_TAG}...${TAG}"
+            else
+              echo "## What's Changed"
+              echo
+              git log --no-merges --pretty=format:'- %s (%h)' "$TAG"
+              echo
+            fi
+          } > release-notes.md
+
+          gh release create "$TAG" --title "$TAG" --notes-file release-notes.md --verify-tag

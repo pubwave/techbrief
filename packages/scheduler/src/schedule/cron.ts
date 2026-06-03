@@ -29,9 +29,19 @@ export function getNextCronOccurrence(cron: string, after: Date): Date {
 }
 
 function matchesParsedCron(parsed: ParsedCronExpression, candidate: Date): boolean {
-  return parsed.minutes.includes(candidate.getUTCMinutes())
+  const timeMatches = parsed.minutes.includes(candidate.getUTCMinutes())
     && parsed.hours.includes(candidate.getUTCHours())
-    && parsed.dayOfMonth.includes(candidate.getUTCDate())
-    && parsed.months.includes(candidate.getUTCMonth() + 1)
-    && parsed.dayOfWeek.includes(candidate.getUTCDay());
+    && parsed.months.includes(candidate.getUTCMonth() + 1);
+  if (!timeMatches) {
+    return false;
+  }
+
+  const dayOfMonthMatches = parsed.dayOfMonth.includes(candidate.getUTCDate());
+  const dayOfWeekMatches = parsed.dayOfWeek.includes(candidate.getUTCDay());
+
+  // Standard cron: when both day fields are restricted, match if EITHER matches;
+  // otherwise the wildcard field matches everything, so AND is equivalent.
+  return parsed.dayOfMonthRestricted && parsed.dayOfWeekRestricted
+    ? dayOfMonthMatches || dayOfWeekMatches
+    : dayOfMonthMatches && dayOfWeekMatches;
 }

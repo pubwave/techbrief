@@ -6,6 +6,7 @@ export interface FilteredFeedArticle {
     | "invalid-title"
     | "invalid-url"
     | "invalid-body"
+    | "incomplete-body"
     | "invalid-published-at"
     | "blocked-weak-source-url"
     | "blocked-weak-source-title"

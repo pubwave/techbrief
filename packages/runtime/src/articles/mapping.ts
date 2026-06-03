@@ -33,6 +33,7 @@ export function mapStoredArticleRow(row: StoredArticleRow, preferredLanguage?: s
     ...(author ? { author } : {}),
     publishedAt: row.published_at,
     originalUrl: row.original_url,
+    ...(row.source_url ? { sourceUrl: row.source_url } : {}),
     ...(row.cover_image ? { coverImage: row.cover_image } : {}),
     tags: JSON.parse(row.tags_json) as string[],
     language: row.language,

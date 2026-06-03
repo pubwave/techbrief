@@ -37,6 +37,11 @@ export function MobileArticleDetailPage({
                 {strings.backToList}
               </button>
               {translationError ? <div className={`${ui.subtlePanel} px-3 py-2.5 text-red-500`}>{translationError}</div> : null}
+              {!translationError && isTranslating ? (
+                <div className={`${ui.subtlePanel} px-3 py-2.5 text-tb-text-muted`}>
+                  {strings.translationInProgress}
+                </div>
+              ) : null}
             </div>
           }
         />

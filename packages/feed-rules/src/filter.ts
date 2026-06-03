@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { buildArticleBodyFingerprint, type FeedArticle, type SourceDefinition } from "@techbrief/shared";
+import { buildArticleBodyFingerprint, hasArticleSourceBody, type FeedArticle, type SourceDefinition } from "@techbrief/shared";
 import type { ApplyFeedRulesInput, ApplyFeedRulesResult, FilteredFeedArticle } from "./types.js";
 import { isWeakSource } from "./source-trust.js";
 import { isBlockedWeakSourceTitle, normalizeWhitespace } from "./title.js";
@@ -57,6 +57,14 @@ export async function filterArticleBatch(
     const publishedAtMs = Date.parse(rawArticle.publishedAt);
     if (!Number.isFinite(publishedAtMs)) {
       await pushFiltered(context.filtered, onFiltered, rawArticle, "invalid-published-at");
+      continue;
+    }
+
+    // Only drop articles with no body at all. Length/paragraph thresholds are
+    // intentionally not applied here: short posts (release notes, indie-dev
+    // writing, official announcements) are valid content.
+    if (!hasArticleSourceBody(rawArticle)) {
+      await pushFiltered(context.filtered, onFiltered, rawArticle, "invalid-body");
       continue;
     }
 

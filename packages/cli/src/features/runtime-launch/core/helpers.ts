@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { detectWizardLocale, wizardMessage, type WizardLocale } from "../../../shared/i18n/wizard/index.js";
 import type { LaunchInput } from "./types.js";
@@ -82,6 +83,28 @@ export function resolveServeWebScriptPath(): string {
   const candidates = [directCandidate, bundledCandidate, bundledCjsCandidate, directCjsCandidate];
 
   return candidates.find((candidate) => existsSync(candidate)) ?? directCandidate;
+}
+
+export function resolveServeApiScriptPath(): string {
+  const candidates = [
+    // Bundled package: dist/bin/serve-api.js (server bundled at build time).
+    fileURLToPath(new URL("./bin/serve-api.js", import.meta.url)),
+    fileURLToPath(new URL("../bin/serve-api.js", import.meta.url)),
+    // Local monorepo dev: the built server entry.
+    fileURLToPath(new URL("../../../../../../apps/server/dist/index.js", import.meta.url))
+  ];
+  return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0]!;
+}
+
+export function resolveWebDistDir(): string {
+  const candidates = [
+    // Bundled package: dist/web (prebuilt client copied in at build time).
+    fileURLToPath(new URL("./web", import.meta.url)),
+    fileURLToPath(new URL("../web", import.meta.url)),
+    // Local monorepo dev: the built web client.
+    fileURLToPath(new URL("../../../../../../apps/web/dist", import.meta.url))
+  ];
+  return candidates.find((candidate) => existsSync(path.join(candidate, "index.html"))) ?? candidates[0]!;
 }
 
 export function resolveServeSchedulerScriptPath(): string {

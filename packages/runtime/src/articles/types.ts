@@ -9,6 +9,7 @@ export interface ArticleRecordRow {
   author: string | null;
   published_at: string;
   original_url: string;
+  source_url: string | null;
   cover_image: string | null;
   tags_json: string;
   language: string;
@@ -60,6 +61,8 @@ export interface StoredArticleQuery {
   category?: string | null;
   preferredLanguage?: string | null;
   sourceId?: string | null;
+  since?: string | null;
+  search?: string | null;
   offset?: number | null;
   limit?: number | null;
 }

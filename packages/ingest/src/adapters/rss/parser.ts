@@ -8,15 +8,16 @@ const parser = new XMLParser({
 });
 
 export interface ParsedFeedItem {
+  [key: string]: unknown;
   title?: string;
-  link?: string | { href?: string };
+  link?: string | { href?: string; rel?: string } | Array<{ href?: string; rel?: string }>;
   pubDate?: string;
   published?: string;
   updated?: string;
   description?: string;
   summary?: string;
   author?: string | { name?: string };
-  category?: string | string[];
+  category?: string | { term?: string } | Array<string | { term?: string }>;
 }
 
 export function parseFeed(xml: string): ParsedFeedItem[] {

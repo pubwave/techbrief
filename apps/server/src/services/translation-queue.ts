@@ -1,12 +1,12 @@
-interface TranslationTask<T> {
-  run: () => Promise<T>;
-  resolve: (value: T | PromiseLike<T>) => void;
+interface QueuedTranslationTask {
+  run: () => Promise<unknown>;
+  resolve: (value: unknown) => void;
   reject: (reason?: unknown) => void;
 }
 
 const DEFAULT_CONCURRENCY = 1;
 
-const pendingTasks: Array<TranslationTask<any>> = [];
+const pendingTasks: QueuedTranslationTask[] = [];
 let activeTaskCount = 0;
 let maxConcurrentTasks = DEFAULT_CONCURRENCY;
 
@@ -16,13 +16,14 @@ export function setTranslationQueueConcurrency(value: number): void {
   pumpTranslationQueue();
 }
 
-export function enqueueTranslationTask<T>(run: () => Promise<T>): Promise<T> {
+export function enqueueTranslationTask<T>(run: () => Promise<T>, priority = false): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    pendingTasks.push({
-      run,
-      resolve,
-      reject
-    });
+    const task: QueuedTranslationTask = { run, resolve: (value) => resolve(value as T), reject };
+    if (priority) {
+      pendingTasks.unshift(task);
+    } else {
+      pendingTasks.push(task);
+    }
     pumpTranslationQueue();
   });
 }
@@ -39,7 +40,7 @@ function pumpTranslationQueue(): void {
   }
 }
 
-async function runQueuedTask(task: TranslationTask<any>): Promise<void> {
+async function runQueuedTask(task: QueuedTranslationTask): Promise<void> {
   try {
     task.resolve(await task.run());
   } catch (error) {

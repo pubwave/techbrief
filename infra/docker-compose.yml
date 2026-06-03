@@ -5,17 +5,9 @@ services:
       dockerfile: apps/server/Dockerfile
     environment:
       HOST: 0.0.0.0
-      PORT: 4310
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-}
-      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      PORT: 9541
     ports:
-      - "4310:4310"
+      - "9541:9541"
     volumes:
       - techbrief-state:/app/.techbrief
 
@@ -26,7 +18,7 @@ services:
     depends_on:
       - api
     ports:
-      - "4173:80"
+      - "9540:80"
 
 volumes:
   techbrief-state:

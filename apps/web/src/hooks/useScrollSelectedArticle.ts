@@ -1,14 +1,14 @@
-import { useEffectEvent, useRef } from "react";
+import { useCallback, useRef } from "react";
 
 export function useScrollSelectedArticle(onSelect: (id: string) => void) {
   const articleElementsRef = useRef(new Map<string, HTMLElement>());
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const selectArticle = useEffectEvent((id: string) => {
+  const selectArticle = useCallback((id: string) => {
     onSelect(id);
-  });
+  }, [onSelect]);
 
-  const advanceToArticle = useEffectEvent((id: string) => {
+  const advanceToArticle = useCallback((id: string) => {
     onSelect(id);
 
     requestAnimationFrame(() => {
@@ -16,7 +16,7 @@ export function useScrollSelectedArticle(onSelect: (id: string) => void) {
         scrollArticleToTop(id);
       });
     });
-  });
+  }, [onSelect]);
 
   function setArticleElement(id: string, element: HTMLElement | null): void {
     if (element) {

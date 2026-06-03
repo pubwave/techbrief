@@ -7,6 +7,7 @@ export type InitialSyncStatus = "idle" | "in_progress" | "completed" | "failed";
 export interface InitialSyncState {
   status: InitialSyncStatus;
   targetLanguage: string | null;
+  ownerId: string | null;
   requiresAi: boolean;
   schedulerEnabled: boolean;
   startedAt: string | null;
@@ -18,6 +19,7 @@ export interface InitialSyncState {
 const DEFAULT_INITIAL_SYNC_STATE: InitialSyncState = {
   status: "idle",
   targetLanguage: null,
+  ownerId: null,
   requiresAi: false,
   schedulerEnabled: false,
   startedAt: null,
@@ -35,6 +37,7 @@ export async function loadInitialSyncState(): Promise<InitialSyncState> {
   return {
     status: state.status ?? DEFAULT_INITIAL_SYNC_STATE.status,
     targetLanguage: state.targetLanguage ?? null,
+    ownerId: state.ownerId ?? null,
     requiresAi: state.requiresAi ?? false,
     schedulerEnabled: state.schedulerEnabled ?? false,
     startedAt: state.startedAt ?? null,
@@ -48,11 +51,12 @@ export async function saveInitialSyncState(state: InitialSyncState): Promise<voi
   await writeJsonFile(getInitialSyncStateFile(), state);
 }
 
-export async function markInitialSyncStarted(targetLanguage: string): Promise<InitialSyncState> {
+export async function markInitialSyncStarted(targetLanguage: string, ownerId: string | null = null): Promise<InitialSyncState> {
   const now = new Date().toISOString();
   const next: InitialSyncState = {
     status: "in_progress",
     targetLanguage,
+    ownerId,
     requiresAi: requiresAiForLanguage(targetLanguage),
     schedulerEnabled: false,
     startedAt: now,
@@ -64,12 +68,17 @@ export async function markInitialSyncStarted(targetLanguage: string): Promise<In
   return next;
 }
 
-export async function markInitialSyncCompleted(targetLanguage: string): Promise<InitialSyncState> {
+export async function markInitialSyncCompleted(targetLanguage: string, ownerId: string | null = null): Promise<InitialSyncState> {
   const current = await loadInitialSyncState();
+  if (ownerId && current.ownerId !== ownerId) {
+    return current;
+  }
+
   const now = new Date().toISOString();
   const next: InitialSyncState = {
     status: "completed",
     targetLanguage,
+    ownerId: null,
     requiresAi: requiresAiForLanguage(targetLanguage),
     schedulerEnabled: true,
     startedAt: current.startedAt ?? now,
@@ -83,13 +92,19 @@ export async function markInitialSyncCompleted(targetLanguage: string): Promise<
 
 export async function markInitialSyncFailed(
   targetLanguage: string,
-  failureMessage: string
+  failureMessage: string,
+  ownerId: string | null = null
 ): Promise<InitialSyncState> {
   const current = await loadInitialSyncState();
+  if (ownerId && current.ownerId !== ownerId) {
+    return current;
+  }
+
   const now = new Date().toISOString();
   const next: InitialSyncState = {
     status: "failed",
     targetLanguage,
+    ownerId: null,
     requiresAi: requiresAiForLanguage(targetLanguage),
     schedulerEnabled: false,
     startedAt: current.startedAt ?? now,
@@ -112,4 +127,9 @@ export function isInitialSyncStateCurrent(state: InitialSyncState, config: AppCo
     && state.schedulerEnabled
     && state.targetLanguage === targetLanguage
     && state.requiresAi === requiresAiForLanguage(targetLanguage);
+}
+
+export async function isInitialSyncOwnedBy(ownerId: string): Promise<boolean> {
+  const state = await loadInitialSyncState();
+  return state.status === "in_progress" && state.ownerId === ownerId;
 }

@@ -1,5 +1,6 @@
 import { createTextSegment } from "../ast/builders.js";
 import type { ContentInlineMark, ContentTextSegment } from "../ast/types.js";
+import { decodeHtmlEntities } from "../html-entities.js";
 
 const MARK_PATTERNS = [
   { type: "link" as const, pattern: /^\[([^\]]+)\]\(([^)]+)\)/ },
@@ -45,9 +46,14 @@ export function renderInlineMarkdownText(segments: ContentTextSegment[]): string
 }
 
 export function htmlInlineToMarkdown(input: string): string {
-  return input
+  return decodeHtmlEntities(input
     .replace(/<a\b[^>]*href=(["'])(.*?)\1[^>]*>([\s\S]*?)<\/a>/gi, (_, __, href: string, text: string) => {
-      return `[${htmlInlineToPlainText(text)}](${href.trim()})`;
+      const plainText = htmlInlineToPlainText(text);
+      if (!plainText) {
+        return "";
+      }
+
+      return `[${plainText}](${decodeHtmlEntities(href.trim())})`;
     })
     .replace(/<(strong|b)>([\s\S]*?)<\/\1>/gi, (_, __, text: string) => `**${htmlInlineToMarkdown(text)}**`)
     .replace(/<(em|i)>([\s\S]*?)<\/\1>/gi, (_, __, text: string) => `*${htmlInlineToMarkdown(text)}*`)
@@ -55,7 +61,7 @@ export function htmlInlineToMarkdown(input: string): string {
     .replace(/<(s|del|strike)>([\s\S]*?)<\/\1>/gi, (_, __, text: string) => `~~${htmlInlineToMarkdown(text)}~~`)
     .replace(/<code>([\s\S]*?)<\/code>/gi, (_, text: string) => `\`${htmlInlineToPlainText(text)}\``)
     .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<[^>]+>/g, "");
+    .replace(/<[^>]+>/g, ""));
 }
 
 export function htmlInlineToPlainText(input: string): string {
@@ -65,6 +71,12 @@ export function htmlInlineToPlainText(input: string): string {
 function matchInlineToken(input: string): { index: number; length: number; segments: ContentTextSegment[] } | null {
   for (let index = 0; index < input.length; index += 1) {
     const candidate = input.slice(index);
+
+    const imageMatch = candidate.match(/^!\[([^\]]*)\]\(([^)]+)\)/);
+    if (imageMatch) {
+      const alt = imageMatch[1]?.trim() ?? "";
+      return { index, length: imageMatch[0].length, segments: alt ? [createTextSegment(alt)] : [] };
+    }
 
     for (const entry of MARK_PATTERNS) {
       const matched = candidate.match(entry.pattern);

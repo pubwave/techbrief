@@ -4,6 +4,7 @@ import { parseFeed } from "./parser.js";
 import { mapFeedItemToArticle } from "./map-item.js";
 import { isFresh, sortByPublishedDate } from "../shared/article-utils.js";
 import { formatFetchError } from "../shared/fetch-error.js";
+import { sourceFetchSignal } from "../shared/fetch-timeout.js";
 
 export async function fetchSourceArticles({ source, freshnessDays }: FetchSourceArticlesInput): Promise<FetchSourceArticlesResult> {
   if (!source.feedUrl) {
@@ -17,7 +18,8 @@ export async function fetchSourceArticles({ source, freshnessDays }: FetchSource
     const response = await fetch(source.feedUrl, {
       headers: {
         "user-agent": "TechBriefBot/0.1 (+https://github.com/pubwave/techbrief)"
-      }
+      },
+      signal: sourceFetchSignal()
     });
 
     if (!response.ok) {

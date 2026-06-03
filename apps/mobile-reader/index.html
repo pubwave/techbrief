@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>TechBrief Reader</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      /* Content-driven height: the mobile host sizes the WebView to the reader's
+         scrollHeight, so html/body/#root must grow with content (not fill a
+         fixed 100%, which would report a viewport-locked height). */
+      /* Match the web reader's type standard: same sans-serif stack (the editor
+         font-family is `inherit`, so without this it would fall back to the
+         browser default serif) and the same 16px root size. text-size-adjust
+         pins it so iOS WKWebView doesn't auto-inflate the text. */
+      html, body, #root {
+        width: 100%;
+        font-family: Inter, "Noto Sans SC", system-ui, -apple-system, sans-serif;
+      }
+      html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+      /* The Flutter host drops bottom SafeArea so the WebView reaches the screen
+         edge; pad the content past the home indicator so the last line is never
+         hidden under it (viewport-fit=cover exposes the inset to env()). */
+      body {
+        background: transparent;
+        padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+      }
+
+      /* The @pubwave/editor styles target a desktop editor card: a min-height
+         floor and a flex `overflow-y:auto` content area with its own scroll.
+         In this read-only reader the WebView is sized to content and the Flutter
+         host owns scrolling, so that inner scroll container fought the host
+         scroll and made the reported height — and thus the text — jitter. Flatten
+         it to plain block flow that grows with content. `!important` so it wins
+         regardless of when the editor's stylesheet is injected. */
+      .pubwave-editor:not(.pubwave-editor--fixed-height) { min-height: 0 !important; }
+      .pubwave-editor__content {
+        display: block !important;
+        flex: none !important;
+        overflow: visible !important;
+        min-height: 0 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>

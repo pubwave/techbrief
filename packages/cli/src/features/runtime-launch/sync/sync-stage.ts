@@ -6,11 +6,15 @@ import type { WizardLocale } from "../../../shared/i18n/wizard/index.js";
 export async function runInitialSyncStage(
   locale: WizardLocale,
   input: LaunchInput,
-  steps: LaunchStep[]
+  steps: LaunchStep[],
+  options: {
+    shouldContinue?: () => Promise<boolean> | boolean;
+  } = {}
 ): Promise<LaunchResult["sync"]> {
   input.onProgress?.("sync-feed");
   await yieldToUi();
   const syncResult = await performInitialFeedSync(locale, {
+    ...(options.shouldContinue ? { shouldContinue: options.shouldContinue } : {}),
     onOutput: async (line) => {
       await input.onOutput?.(line, "stdout");
       await yieldToUi();

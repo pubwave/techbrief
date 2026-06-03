@@ -1,79 +1,110 @@
-import '../theme/app_theme.dart';
+import 'package:flutter/widgets.dart';
 
-typedef CountFormatter = String Function(int value);
+import '../theme/palette.dart';
+import 'locales/de.dart';
+import 'locales/en.dart';
+import 'locales/es.dart';
+import 'locales/fr.dart';
+import 'locales/ja.dart';
+import 'locales/ko.dart';
+import 'locales/pt.dart';
+import 'locales/zh_cn.dart';
+import 'locales/zh_tw.dart';
 
-class AppStrings {
-  const AppStrings({
-    required this.menuFeed,
-    required this.menuSettings,
-    required this.signalReader,
-    required this.channel,
-    required this.techNewsFilter,
-    required this.indieDevFilter,
-    required this.itemsCount,
-    required this.searchPlaceholder,
-    required this.backToFeed,
-    required this.openSourceLink,
-    required this.unableToOpenSourceLink,
-    required this.settingsTitle,
-    required this.settingsDescription,
-    required this.apiBaseUrl,
-    required this.apiBaseUrlHint,
-    required this.apiBaseUrlHelp,
-    required this.saveServer,
-    required this.syncNow,
-    required this.syncingNow,
-    required this.savedServerAddress,
-    required this.syncingLatestArticles,
-    required this.syncedArticles,
-    required this.usingLocalCache,
-    required this.themeTitle,
-    required this.themeDescription,
-    required this.active,
-    required this.apply,
-    required this.minutesAgo,
-    required this.hoursAgo,
-    required this.daysAgo,
-    required this.justNow,
-    required this.themeLabels,
-    required this.themeSummaries,
-  });
+String formatRelativeTime(
+  DateTime dt, {
+  required String now,
+  required String Function(int value) minute,
+  required String Function(int value) hour,
+  required String Function(int value) day,
+  required String Function(int value) month,
+  required String Function(int value) year,
+}) {
+  final diff = DateTime.now().difference(dt);
+  if (diff.inMinutes < 1) return now;
+  if (diff.inMinutes < 60) return minute(diff.inMinutes);
+  if (diff.inHours < 24) return hour(diff.inHours);
+  if (diff.inDays < 30) return day(diff.inDays);
 
-  final String menuFeed;
-  final String menuSettings;
-  final String signalReader;
-  final String channel;
-  final String techNewsFilter;
-  final String indieDevFilter;
-  final CountFormatter itemsCount;
-  final String searchPlaceholder;
-  final String backToFeed;
-  final String openSourceLink;
-  final String unableToOpenSourceLink;
-  final String settingsTitle;
-  final String settingsDescription;
-  final String apiBaseUrl;
-  final String apiBaseUrlHint;
-  final String apiBaseUrlHelp;
-  final String saveServer;
-  final String syncNow;
-  final String syncingNow;
-  final String savedServerAddress;
-  final String Function(int count, String baseUrl) syncedArticles;
-  final String Function(String error) usingLocalCache;
-  final String syncingLatestArticles;
-  final String themeTitle;
-  final String themeDescription;
-  final String active;
-  final String apply;
-  final String Function(int value) minutesAgo;
-  final String Function(int value) hoursAgo;
-  final String Function(int value) daysAgo;
-  final String justNow;
-  final Map<AppThemeId, String> themeLabels;
-  final Map<AppThemeId, String> themeSummaries;
+  final months = diff.inDays ~/ 30;
+  if (months < 12) return month(months);
+  return year(months ~/ 12);
+}
 
-  String themeLabel(AppThemeId themeId) => themeLabels[themeId] ?? '';
+/// Mobile string contract — keys mirror web LocaleMessages where applicable.
+abstract class AppStrings {
+  const AppStrings();
 
-  String themeSummary(AppThemeId themeId) => themeSummaries[themeId] ?? '';
+  static AppStrings of(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    switch (locale.languageCode) {
+      case 'zh':
+        final script = locale.scriptCode ?? '';
+        final region = locale.countryCode ?? '';
+        if (script == 'Hant' ||
+            region == 'TW' ||
+            region == 'HK' ||
+            region == 'MO') {
+          return const ZhTwStrings();
+        }
+        return const ZhCnStrings();
+      case 'ja':
+        return const JaStrings();
+      case 'ko':
+        return const KoStrings();
+      case 'es':
+        return const EsStrings();
+      case 'fr':
+        return const FrStrings();
+      case 'de':
+        return const DeStrings();
+      case 'pt':
+        return const PtStrings();
+      default:
+        return const EnStrings();
+    }
+  }
+
+  // ── App chrome ──────────────────────────────────────────────────────────────
+  String get appName; // web: menu
+  String get signalReader; // web: signalReader
+
+  // ── Feed ────────────────────────────────────────────────────────────────────
+  String get tabFeed; // web: home
+  String get tabSettings; // web: settings
+  String get channelAll; // web: allFilter
+  String get channelTechNews; // web: techNewsFilter
+  String get channelIndieDev; // web: indieDevFilter
+  String get searchPlaceholder; // web: searchPlaceholder
+  String get nextSyncLabel; // web: nextSyncLabel
+  String get syncingData; // web: syncingData
+  String get emptyFeed; // web: emptyFeed
+  String get loadFeedError; // web: loadFeedError
+  String get loadingMore; // web: loadingMore
+  String get showingCached; // mobile-only fallback notice
+  String itemsCount(int count); // web: itemsCount
+
+  // ── Article detail ──────────────────────────────────────────────────────────
+  String get translationInProgress; // web: translationInProgress
+  String get translationFailed; // mobile-only
+  String get openSourceLink; // web: openSourceLink
+  String get previousArticle; // web: previousArticleLabel
+  String get nextArticle; // web: nextArticleLabel
+
+  // ── Settings ────────────────────────────────────────────────────────────────
+  String get settings; // web: settings
+  String get workspaceSettings; // web: workspaceSettings
+  String get workspaceSettingsDesc; // web: workspaceSettingsDescription
+  String get theme; // web: theme
+  String get themeDescription; // web: themeDescription
+  String get active; // web: active
+  String get apply; // web: apply
+
+  // ── Theme labels (mirrors web themeLabels / themeSummaries) ─────────────────
+  String themeLabel(AppThemeId id);
+  String themeSummary(AppThemeId id);
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  String relativeTime(DateTime dt);
+  String readTime(int minutes);
 }

@@ -4,6 +4,11 @@ export const ptCatalog: TechBriefLocaleCatalog = {
   stageTitle: "Iniciando o TechBrief",
   readyTitle: "TechBrief está em execução",
   readyHint: "Abra os URLs acima para usar o produto.",
+  launchFailedLabel: "Falha ao iniciar",
+  serviceFailedLabel: "Falha no serviço",
+  serviceStartFailedLabel: "Falha ao iniciar o serviço",
+  runtimeLabel: "Diretório de execução",
+  noneLabel: "nenhum",
   substageLabels: {
     "prepare-runtime": "Preparando o espaço de trabalho",
     "stop-old-services": "Parando serviços anteriores",

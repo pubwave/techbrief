@@ -5,6 +5,8 @@ export interface ListArticlesInput {
   category?: string | null;
   preferredLanguage?: string | null;
   sourceId?: string | null;
+  since?: string | null;
+  search?: string | null;
   offset: number;
   limit: number;
 }

@@ -1,6 +1,7 @@
 import { createAiProvider, processArticleWithAi } from "@techbrief/ai";
 import { getArticleSourceBody, type AiConfig } from "@techbrief/shared";
 import { convertContent } from "@techbrief/converter";
+import { extractSummary } from "@techbrief/summarizer";
 import type { FeedArticle } from "@techbrief/shared";
 
 export interface EnrichArticlesInput {
@@ -19,6 +20,67 @@ export interface PrepareArticlesInput {
 
 const DEFAULT_ENRICH_CONCURRENCY = 3;
 const LOCAL_ENRICH_CONCURRENCY = 1;
+
+const SUMMARY_SENTENCES = 3;
+
+// Markers feeds append when they ship only a truncated lead-in instead of a real
+// summary (e.g. NVIDIA blog "… between what [...]"). Such a "summary" is not a
+// summary, so it is replaced with a TextRank extract of the body.
+const TRUNCATION_MARKERS = [
+  /\[\s*[.…]+\s*\]\s*$/,
+  /[.。]{3,}\s*$/,
+  /…\s*$/,
+  /\b(read more|continue reading|keep reading)\b[\s.…]*$/i
+];
+
+function normalizeForCompare(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/**
+ * A feed-provided summary is a genuine summary unless it is just a truncated
+ * lead-in: it ends with a truncation marker, or (ignoring any marker) it is a
+ * verbatim prefix of the article body.
+ */
+function isTruncatedExcerpt(summary: string, body: string | undefined): boolean {
+  if (TRUNCATION_MARKERS.some((pattern) => pattern.test(summary))) {
+    return true;
+  }
+
+  if (!body) {
+    return false;
+  }
+
+  const stripped = summary
+    .replace(/\[\s*[.…]+\s*\]\s*$/, "")
+    .replace(/[.…]+\s*$/, "")
+    .trim();
+  if (!stripped) {
+    return false;
+  }
+
+  return normalizeForCompare(body).startsWith(normalizeForCompare(stripped));
+}
+
+/**
+ * Keep a genuine feed-provided summary; otherwise (missing, or just a truncated
+ * lead-in of the body) derive an extractive TextRank summary from the body.
+ */
+function deriveSummary(article: FeedArticle, normalizedBody: string | undefined): string | undefined {
+  const existing = article.summary?.trim();
+  const body = normalizedBody?.trim();
+
+  if (existing && !isTruncatedExcerpt(existing, body)) {
+    return existing;
+  }
+
+  if (!body) {
+    return existing;
+  }
+
+  const summary = extractSummary(body, { sentences: SUMMARY_SENTENCES });
+  return summary || existing;
+}
 
 function articleText(value: unknown, fallback = ""): string {
   if (typeof value === "string") {
@@ -49,6 +111,8 @@ function convertArticle(article: FeedArticle): FeedArticle {
         })
       : null;
 
+  const summary = deriveSummary(article, sourceConversion.bodyNormalized);
+
   return {
     ...article,
     ...(sourceBody
@@ -66,7 +130,8 @@ function convertArticle(article: FeedArticle): FeedArticle {
           translatedBodyAst: translatedConversion.bodyAst,
           translatedBodyTiptapJson: translatedConversion.bodyTiptapJson
         }
-      : {})
+      : {}),
+    ...(summary ? { summary } : {})
   };
 }
 
@@ -171,7 +236,14 @@ function detectContentFormat(body: unknown): "html" | "markdown" | "plain-text" 
     return "html";
   }
 
-  if (/^#{1,6}\s/m.test(trimmed) || /^[-*]\s+/m.test(trimmed) || /^\d+\.\s+/m.test(trimmed) || /```/.test(trimmed)) {
+  if (
+    /^#{1,6}\s/m.test(trimmed)
+    || /^[-*]\s+/m.test(trimmed)
+    || /^\d+\.\s+/m.test(trimmed)
+    || /```/.test(trimmed)
+    || /!\[/.test(trimmed)
+    || /\[[^\]]*\]\([^)]+\)/.test(trimmed)
+  ) {
     return "markdown";
   }
 

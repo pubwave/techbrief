@@ -3,6 +3,7 @@ import type { AiOutput, AiProvider, HttpProviderOptions } from "../types.js";
 import { createParsedArticleAiOutput } from "./output.js";
 import { buildArticlePrompt, buildBodyTranslationPrompt, parseJsonObject } from "./prompt.js";
 import { responseIsEventStream, streamChatCompletionContent } from "./stream-parser.js";
+import { AI_REQUEST_TIMEOUT_MS } from "./fetch-timeout.js";
 
 interface OpenAiCompatibleResponse {
   choices?: Array<{
@@ -15,19 +16,35 @@ interface OpenAiCompatibleResponse {
 function extractMessage(payload: OpenAiCompatibleResponse): string {
   const content = payload.choices?.[0]?.message?.content;
   if (typeof content === "string") {
-    return content.trim();
+    return stripReasoningBlocks(content);
   }
 
   if (Array.isArray(content)) {
-    return content
-      .filter((item) => item.type === "text" && typeof item.text === "string")
-      .map((item) => item.text?.trim() ?? "")
-      .filter(Boolean)
-      .join("\n")
-      .trim();
+    return stripReasoningBlocks(
+      content
+        .filter((item) => item.type === "text" && typeof item.text === "string")
+        .map((item) => item.text?.trim() ?? "")
+        .filter(Boolean)
+        .join("\n")
+    );
   }
 
   return "";
+}
+
+/**
+ * Remove `<think>…</think>` reasoning blocks that some local OpenAI-compatible
+ * servers inline into the message content. Ollama keeps reasoning in a separate
+ * field, but llama.cpp/LM Studio/vLLM may emit it inline, which would otherwise
+ * pollute the translation and fail target-language validation.
+ */
+function stripReasoningBlocks(text: string): string {
+  // Drop well-formed <think>…</think> blocks, then any stray leading </think>
+  // (and everything before it) left over when the opening tag was not captured.
+  return text
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/^[\s\S]*?<\/think>/i, "")
+    .trim();
 }
 
 export class OpenAiCompatibleProvider implements AiProvider {
@@ -54,8 +71,10 @@ export class OpenAiCompatibleProvider implements AiProvider {
         ],
         response_format: {
           type: "json_object"
-        }
-      })
+        },
+        ...(this.options.disableReasoning ? { reasoning_effort: "none" } : {})
+      }),
+      signal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS)
     });
 
     if (!response.ok) {
@@ -96,7 +115,8 @@ export class OpenAiCompatibleProvider implements AiProvider {
             content: buildBodyTranslationPrompt(input)
           }
         ],
-        stream: true
+        stream: true,
+        ...(this.options.disableReasoning ? { reasoning_effort: "none" } : {})
       })
     });
 
@@ -109,6 +129,7 @@ export class OpenAiCompatibleProvider implements AiProvider {
       return extractMessage(payload);
     }
 
-    return streamChatCompletionContent(response, (delta) => input.onDelta?.(delta));
+    const streamed = await streamChatCompletionContent(response, (delta) => input.onDelta?.(delta));
+    return stripReasoningBlocks(streamed);
   }
 }

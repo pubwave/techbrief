@@ -13,10 +13,10 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
-ENV PORT=4310
+ENV PORT=9541
 
 COPY --from=build /app /app
 
-EXPOSE 4310
+EXPOSE 9541
 
 CMD ["node", "apps/server/dist/index.js"]

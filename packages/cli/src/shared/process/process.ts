@@ -1,7 +1,7 @@
 import { closeSync, existsSync, mkdirSync, openSync, writeFileSync } from "node:fs";
 import { mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 
 export interface DetachedProcessResult {
   ok: boolean;
@@ -78,7 +78,6 @@ export async function ensureDetachedProcessStopped(pidFile: string): Promise<voi
 }
 
 function collectPortPidsUnix(port: number): number[] {
-  const { spawnSync } = require("node:child_process") as typeof import("node:child_process");
   const result = spawnSync("lsof", ["-ti", `:${port}`], { encoding: "utf8" });
   if (result.status !== 0 || !result.stdout?.trim()) {
     return [];
@@ -91,7 +90,6 @@ function collectPortPidsUnix(port: number): number[] {
 }
 
 function collectPortPidsWindows(port: number): number[] {
-  const { spawnSync } = require("node:child_process") as typeof import("node:child_process");
   const result = spawnSync("netstat", ["-ano"], { encoding: "utf8" });
   if (result.status !== 0 || !result.stdout?.trim()) {
     return [];
@@ -112,7 +110,6 @@ function collectPortPidsWindows(port: number): number[] {
 }
 
 function killPortPidsWindows(pids: number[]): void {
-  const { spawnSync } = require("node:child_process") as typeof import("node:child_process");
   for (const pid of pids) {
     try {
       spawnSync("taskkill", ["/F", "/PID", String(pid)], { encoding: "utf8" });

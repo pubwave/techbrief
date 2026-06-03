@@ -13,7 +13,8 @@ export class LocalProvider extends OpenAiCompatibleProviderBase {
       provider: "local",
       baseUrl: resolveDefaultLocalBaseUrl(),
       availabilityDetail: LocalProvider.availabilityDetail(),
-      capabilities: DEFAULT_LOCAL_PROVIDER_CAPABILITIES
+      capabilities: DEFAULT_LOCAL_PROVIDER_CAPABILITIES,
+      disableReasoning: true
     });
   }
 }

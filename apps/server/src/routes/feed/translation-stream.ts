@@ -80,7 +80,7 @@ export async function handleFeedTranslationStreamRoute({ request, response, url 
 }
 
 function hasTranslatedArticle(article: FeedArticle): boolean {
-  return Boolean(article.translatedBodyRaw?.trim());
+  return Boolean(article.translatedBodyRaw?.trim()) && Boolean(article.translatedTitle?.trim());
 }
 
 function sendEventIfOpen(

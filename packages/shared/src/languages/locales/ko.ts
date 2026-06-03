@@ -4,6 +4,11 @@ export const koCatalog: TechBriefLocaleCatalog = {
   stageTitle: "TechBrief 시작 중",
   readyTitle: "TechBrief 실행 중",
   readyHint: "위의 URL을 열어 사용하세요.",
+  launchFailedLabel: "시작 실패",
+  serviceFailedLabel: "서비스 실패",
+  serviceStartFailedLabel: "서비스 시작 실패",
+  runtimeLabel: "실행 경로",
+  noneLabel: "없음",
   substageLabels: {
     "prepare-runtime": "런타임 준비 중",
     "stop-old-services": "이전 서비스 중지 중",

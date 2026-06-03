@@ -1,10 +1,11 @@
 import type { FeedArticle } from "@techbrief/shared";
-import { runFeedSync } from "@techbrief/feed";
+import { FeedSyncCancelledError, runFeedSync } from "@techbrief/feed";
 import { wizardMessage, type WizardLocale } from "../../../shared/i18n/wizard/index.js";
 import { appendSyncLogEntry } from "./sync-log.js";
 import { startArticleProcessingProgress, type ArticleProcessingProgress } from "./article-processing-progress.js";
 
 export interface FeedSyncCallbacks {
+  shouldContinue?: () => Promise<boolean> | boolean;
   onOutput?: (line: string) => Promise<void> | void;
   onSyncPercent?: (percent: number) => Promise<void> | void;
   onSyncSourceProgress?: (sourceId: string, index: number, total: number) => Promise<void> | void;
@@ -18,6 +19,7 @@ export interface FeedSyncCallbacks {
 export interface FeedSyncResult {
   ok: boolean;
   detail: string;
+  superseded?: boolean;
 }
 
 export async function performInitialFeedSync(
@@ -34,6 +36,7 @@ export async function performInitialFeedSync(
     let savedArticles = 0;
 
     const result = await runFeedSync({
+      ...(callbacks?.shouldContinue ? { shouldContinue: callbacks.shouldContinue } : {}),
       callbacks: {
         onSourceStart: async (source, index, total) => {
           if (index === 0) {
@@ -125,6 +128,14 @@ export async function performInitialFeedSync(
       detail: wizardMessage(locale, "launchSyncCompleted")
     };
   } catch (error) {
+    if (error instanceof FeedSyncCancelledError) {
+      return {
+        ok: false,
+        detail: wizardMessage(locale, "launchSyncSuperseded"),
+        superseded: true
+      };
+    }
+
     await appendSyncLogEntry({
       phase: "sync-failed",
       message: error instanceof Error ? error.stack ?? error.message : wizardMessage(locale, "launchSyncFailedRequest")

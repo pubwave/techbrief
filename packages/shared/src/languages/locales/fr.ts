@@ -4,6 +4,11 @@ export const frCatalog: TechBriefLocaleCatalog = {
   stageTitle: "Démarrage de TechBrief",
   readyTitle: "TechBrief est en cours",
   readyHint: "Ouvrez les URL ci-dessus pour utiliser le produit.",
+  launchFailedLabel: "Échec du lancement",
+  serviceFailedLabel: "Échec du service",
+  serviceStartFailedLabel: "Échec du démarrage du service",
+  runtimeLabel: "Répertoire d'exécution",
+  noneLabel: "aucun",
   substageLabels: {
     "prepare-runtime": "Préparation de l'espace de travail",
     "stop-old-services": "Arrêt des services précédents",

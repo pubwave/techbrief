@@ -12,10 +12,10 @@ export async function upsertFetchedArticles(articles: FeedArticle[], targetLangu
   const upsertRecord = db.prepare(`
     INSERT INTO article_records (
       id, source_id, source_name, content_type, declared_content_type, author,
-      published_at, original_url, cover_image, tags_json, language
+      published_at, original_url, source_url, cover_image, tags_json, language
     ) VALUES (
       @id, @source_id, @source_name, @content_type, @declared_content_type, @author,
-      @published_at, @original_url, @cover_image, @tags_json, @language
+      @published_at, @original_url, @source_url, @cover_image, @tags_json, @language
     )
     ON CONFLICT(id) DO UPDATE SET
       source_id = excluded.source_id,
@@ -25,6 +25,7 @@ export async function upsertFetchedArticles(articles: FeedArticle[], targetLangu
       author = excluded.author,
       published_at = excluded.published_at,
       original_url = excluded.original_url,
+      source_url = excluded.source_url,
       cover_image = excluded.cover_image,
       tags_json = excluded.tags_json,
       language = excluded.language
@@ -91,6 +92,26 @@ export async function markArticleProcessing(articleId: string, targetLanguage: s
       error_message = NULL,
       updated_at = excluded.updated_at
   `).run(articleId, targetLanguage, now);
+}
+
+export async function markArticleTranslationFailed(
+  articleId: string,
+  targetLanguage: string,
+  errorMessage: string
+): Promise<void> {
+  const now = new Date().toISOString();
+  getArticleDatabase().prepare(`
+    INSERT INTO article_processing_states (
+      article_id, target_language, stage, status, error_message, updated_at
+    ) VALUES (
+      ?, ?, 'translating', 'failed', ?, ?
+    )
+    ON CONFLICT(article_id, target_language) DO UPDATE SET
+      stage = 'translating',
+      status = 'failed',
+      error_message = excluded.error_message,
+      updated_at = excluded.updated_at
+  `).run(articleId, targetLanguage, errorMessage, now);
 }
 
 export async function saveProcessedArticle(article: FeedArticle, targetLanguage: string): Promise<boolean> {
@@ -203,6 +224,7 @@ function toArticleRecordParams(article: FeedArticle): Record<string, string | nu
     author: sanitizeArticleText(article.author) ?? null,
     published_at: article.publishedAt,
     original_url: article.originalUrl,
+    source_url: article.sourceUrl ?? null,
     cover_image: article.coverImage ?? null,
     tags_json: JSON.stringify(article.tags),
     language: article.language

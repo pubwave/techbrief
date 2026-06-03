@@ -18,12 +18,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("@pubwave/editor")) {
-            return "pubwave-editor";
-          }
-
           if (id.includes("@tiptap") || id.includes("prosemirror")) {
             return "pubwave-editor-core";
+          }
+
+          if (id.includes("@pubwave/editor")) {
+            return "pubwave-editor";
           }
 
           if (id.includes("chart.js")) {

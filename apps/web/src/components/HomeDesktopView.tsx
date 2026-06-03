@@ -1,12 +1,12 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import type { Locale, Strings } from "../i18n/types";
 import { useDesktopBodyScrollLock } from "../hooks/useDesktopBodyScrollLock";
 import { useScrollSelectedArticle } from "../hooks/useScrollSelectedArticle";
+import { useTweaks } from "../hooks/useTweaks";
 import type { ThemeId } from "../theme/themes";
 import type { ChannelFilter, FeedArticle } from "../types/feed";
 import { DetailPane } from "./DetailPane";
 import { DesktopFeedPane } from "./DesktopFeedPane";
-import { DEFAULT_TWEAKS, type TweaksState } from "./TweaksPanel";
 
 interface HomeDesktopViewProps {
   article: FeedArticle | null;
@@ -14,6 +14,9 @@ interface HomeDesktopViewProps {
   strings: Strings;
   items: FeedArticle[];
   total: number;
+  newCount?: number;
+  newIds?: Set<string>;
+  onDismissNew?: () => void;
   locale: Locale;
   hasMore?: boolean;
   isLoadingMore?: boolean;
@@ -35,6 +38,9 @@ export function HomeDesktopView({
   strings,
   items,
   total,
+  newCount = 0,
+  newIds,
+  onDismissNew,
   locale,
   hasMore = false,
   isLoadingMore = false,
@@ -51,7 +57,7 @@ export function HomeDesktopView({
 }: HomeDesktopViewProps) {
   useDesktopBodyScrollLock();
   const listScrollRef = useRef<HTMLDivElement | null>(null);
-  const [tweaks, setTweaks] = useState<TweaksState>(DEFAULT_TWEAKS);
+  const { tweaks, setTweaks } = useTweaks();
   const { advanceToArticle, setArticleElement, setScrollContainer, selectArticle } =
     useScrollSelectedArticle(onSelect);
   const selectedIndex = selectedId ? items.findIndex((item) => item.id === selectedId) : -1;
@@ -91,6 +97,9 @@ export function HomeDesktopView({
         selectedId={selectedId}
         strings={strings}
         total={total}
+        newCount={newCount}
+        newIds={newIds}
+        onDismissNew={onDismissNew}
       />
       <DetailPane
         article={article}

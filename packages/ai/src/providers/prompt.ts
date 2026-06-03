@@ -2,10 +2,28 @@ import { serializeAstToMarkdown } from "@techbrief/converter";
 import { getArticlePromptBody } from "@techbrief/shared";
 import type { FeedArticle } from "@techbrief/shared";
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  "zh-cn": "Chinese (Simplified)",
+  "zh-tw": "Chinese (Traditional)",
+  "ja": "Japanese",
+  "ko": "Korean",
+  "es": "Spanish",
+  "fr": "French",
+  "de": "German",
+  "pt": "Portuguese",
+  "en": "English"
+};
+
+function getPromptLanguageName(languageCode: string): string {
+  return LANGUAGE_NAMES[languageCode.toLowerCase()] ?? languageCode;
+}
+
 export function buildArticlePrompt(article: FeedArticle, targetLanguage: string): string {
   const sourceBody = article.bodyAst
     ? serializeAstToMarkdown(article.bodyAst as Parameters<typeof serializeAstToMarkdown>[0])
     : getArticlePromptBody(article);
+
+  const languageName = getPromptLanguageName(targetLanguage);
 
   return [
     "You process imported technology articles for a multilingual reading product.",
@@ -14,7 +32,7 @@ export function buildArticlePrompt(article: FeedArticle, targetLanguage: string)
     '{"summary":"string","translatedTitle":"string","translatedSummary":"string","translatedBodyMarkdown":"string"}',
     "Field rules:",
     "- summary: 1–3 sentences in the source language, factual and editorial-free.",
-    `- translatedTitle, translatedSummary, translatedBodyMarkdown: written in ${targetLanguage}.`,
+    `- translatedTitle, translatedSummary, translatedBodyMarkdown: written in ${languageName}.`,
     "- translatedBodyMarkdown must mirror the source markdown structure (headings, bullet/ordered lists, blockquotes, fenced code, inline code, images, tables, links).",
     "- Do not invent, merge, or remove sections.",
     "Translation style:",

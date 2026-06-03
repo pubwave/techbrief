@@ -12,6 +12,7 @@
   "dependencies": {
     "@techbrief/ai": "0.1.0",
     "@techbrief/converter": "0.1.0",
-    "@techbrief/shared": "0.1.0"
+    "@techbrief/shared": "0.1.0",
+    "@techbrief/summarizer": "0.1.0"
   }
 }

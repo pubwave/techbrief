@@ -179,7 +179,10 @@ export function parseMarkdownAst(input: string): ContentAstDocument {
       continue;
     }
 
-    appendNode(createParagraphNode(parseInlineMarkdownText(normalizeWhitespace(line))));
+    const inlineSegments = parseInlineMarkdownText(normalizeWhitespace(line));
+    if (inlineSegments.length > 0) {
+      appendNode(createParagraphNode(inlineSegments));
+    }
   }
 
   flushList();

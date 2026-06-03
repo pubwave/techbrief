@@ -14,17 +14,30 @@ let child = null;
 
 function restart() {
   if (child) {
+    // Mark this kill as a rebuild restart so its exit doesn't tear down the watcher.
+    child.killedForRestart = true;
     child.kill();
     child = null;
     // Clear terminal so the new Ink render starts from a clean screen.
     process.stdout.write("\x1B[2J\x1B[3J\x1B[H");
   }
-  child = spawn(process.execPath, [entryFile, ...forwardedArgs], { stdio: "inherit" });
-  child.on("exit", (code) => {
-    if (code !== null && code !== 0 && code !== 130) {
-      console.error(`[dev] process exited with code ${code}`);
+  const current = spawn(process.execPath, [entryFile, ...forwardedArgs], { stdio: "inherit" });
+  child = current;
+  current.on("exit", (code) => {
+    if (child === current) child = null;
+    if (current.killedForRestart) {
+      // We killed it to load a rebuild; keep watching for the next change.
+      return;
     }
-    child = null;
+    if (code !== null && code !== 0 && code !== 130) {
+      // Crash: keep watching so fixing the code triggers a rebuild + restart.
+      console.error(`[dev] process exited with code ${code}`);
+      return;
+    }
+    // Clean quit (e.g. user pressed Ctrl+C, which the CLI handled and exited 0):
+    // stop the esbuild watcher and exit too, so a second Ctrl+C isn't needed
+    // just to kill this dev wrapper.
+    void ctx.dispose().finally(() => process.exit(0));
   });
 }
 
@@ -48,7 +61,6 @@ const ctx = await context({
     "@techbrief/runtime": path.resolve(packageRoot, "../runtime/src/index.ts"),
     "@techbrief/scheduler": path.resolve(packageRoot, "../scheduler/src/index.ts"),
     "@techbrief/shared": path.resolve(packageRoot, "../shared/src/index.ts"),
-    "@pubwave/cli": path.resolve(packageRoot, "../../../pubwave-cli/dist/index.js"),
     "react-devtools-core": path.resolve(packageRoot, "./src/shims/react-devtools-core.ts")
   },
   absWorkingDir: packageRoot,

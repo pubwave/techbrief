@@ -14,6 +14,7 @@ function createOptions(config: AiConfig, definition: OpenAiCompatibleProviderDef
     provider: definition.provider,
     model: config.model,
     apiKey: config.apiKey,
-    baseUrl: definition.baseUrl
+    baseUrl: definition.baseUrl,
+    ...(definition.disableReasoning ? { disableReasoning: true } : {})
   };
 }

@@ -16,6 +16,7 @@ export interface FeedArticle {
   author?: string;
   publishedAt: string;
   originalUrl: string;
+  sourceUrl?: string;
   tags: string[];
   language: string;
   bodyNormalized?: string;

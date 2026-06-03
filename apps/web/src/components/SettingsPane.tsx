@@ -11,7 +11,7 @@ interface SettingsPaneProps {
 
 export function SettingsPane({ currentTheme, themes, onThemeChange, strings }: SettingsPaneProps) {
   return (
-    <section className={`${ui.shell} p-5`}>
+    <section className="min-h-full w-full overflow-y-auto border border-tb-border bg-tb-surface-shell p-5">
       <div className={ui.eyebrow}>{strings.settings}</div>
       <h1 className="my-3 text-[clamp(30px,3vw,42px)] leading-[1.08] font-semibold text-tb-text-primary">
         {strings.workspaceSettings}
@@ -19,21 +19,7 @@ export function SettingsPane({ currentTheme, themes, onThemeChange, strings }: S
       <p className="m-0 leading-7 text-tb-text-secondary">
         {strings.workspaceSettingsDescription}
       </p>
-      <div className="mt-[22px] grid grid-cols-2 gap-4 max-md:grid-cols-1">
-        <div className={`${ui.card} p-4`}>
-          <div className="mb-2 text-[15px] font-bold text-tb-text-primary">{strings.feedSync}</div>
-          <p className="m-0 leading-7 text-tb-text-secondary">
-            {strings.feedSyncDescription}
-          </p>
-        </div>
-        <div className={`${ui.card} p-4`}>
-          <div className="mb-2 text-[15px] font-bold text-tb-text-primary">{strings.readingPreferences}</div>
-          <p className="m-0 leading-7 text-tb-text-secondary">
-            {strings.readingPreferencesDescription}
-          </p>
-        </div>
-      </div>
-      <div className="mt-4">
+      <div className="mt-[22px]">
         <div className={`${ui.card} p-4`}>
           <div className="mb-2 text-[15px] font-bold text-tb-text-primary">{strings.theme}</div>
           <p className="m-0 leading-7 text-tb-text-secondary">

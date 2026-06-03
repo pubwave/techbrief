@@ -1,5 +1,7 @@
 import { sanitizeArticleText, type FeedArticle, type SourceDefinition } from "@techbrief/shared";
 import { createArticleId, isFresh, sortByPublishedDate } from "../shared/article-utils.js";
+import { normalizePublishedAt } from "../shared/date-utils.js";
+import { sourceFetchSignal } from "../shared/fetch-timeout.js";
 
 interface HashnodeResponse {
   data?: {
@@ -73,9 +75,9 @@ function mapHashnodeNodeToArticle(source: SourceDefinition, node: HashnodePostNo
   const author = sanitizeArticleText(node.author?.name);
   const originalUrl =
     sanitizeArticleText(node.url) ?? (node.slug ? new URL(node.slug, source.homepage).toString() : null);
-  const publishedAtRaw = node.publishedAt;
+  const publishedAt = normalizePublishedAt(node.publishedAt);
 
-  if (!title || !originalUrl || !publishedAtRaw) {
+  if (!title || !originalUrl || !publishedAt) {
     return null;
   }
 
@@ -86,7 +88,7 @@ function mapHashnodeNodeToArticle(source: SourceDefinition, node: HashnodePostNo
     contentType: source.category,
     declaredContentType: source.category,
     title,
-    publishedAt: new Date(publishedAtRaw).toISOString(),
+    publishedAt,
     originalUrl,
     tags: (node.tags ?? [])
       .map((tag: { name?: string }) => tag.name)
@@ -112,7 +114,8 @@ export async function fetchHashnodePublicationArticles(
     },
     body: JSON.stringify({
       query: buildHashnodeQuery(host)
-    })
+    }),
+    signal: sourceFetchSignal()
   });
 
   if (!response.ok) {

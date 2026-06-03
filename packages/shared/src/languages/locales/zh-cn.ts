@@ -4,6 +4,11 @@ export const zhCnCatalog: TechBriefLocaleCatalog = {
   stageTitle: "正在启动 TechBrief",
   readyTitle: "TechBrief 已就绪",
   readyHint: "打开上方 URL 即可使用。",
+  launchFailedLabel: "启动失败",
+  serviceFailedLabel: "服务失败",
+  serviceStartFailedLabel: "服务启动失败",
+  runtimeLabel: "运行目录",
+  noneLabel: "无",
   substageLabels: {
     "prepare-runtime": "准备 runtime 工作区",
     "stop-old-services": "停止旧的后台服务",

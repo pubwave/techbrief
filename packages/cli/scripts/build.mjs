@@ -1,13 +1,30 @@
-import { chmodSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, cpSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { execSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const packageRoot = path.resolve(scriptDir, "..");
+const repoRoot = path.resolve(packageRoot, "../..");
 const distDir = path.join(packageRoot, "dist");
+const webDistDir = path.join(repoRoot, "apps/web/dist");
 
 rmSync(distDir, { recursive: true, force: true });
+
+// The published CLI serves a prebuilt web bundle and runs the API in-process —
+// no source download or on-machine build. Make sure the web bundle exists, then
+// copy it into the package so `files: ["dist"]` ships it.
+function ensureWebBuilt() {
+  if (existsSync(path.join(webDistDir, "index.html"))) {
+    return;
+  }
+  for (const pkg of ["@techbrief/shared", "@techbrief/converter", "@techbrief/web"]) {
+    execSync(`npm run build -w ${pkg}`, { cwd: repoRoot, stdio: "inherit" });
+  }
+}
+
+ensureWebBuilt();
 
 await build({
   alias: {
@@ -20,7 +37,6 @@ await build({
     "@techbrief/runtime": path.resolve(packageRoot, "../runtime/src/index.ts"),
     "@techbrief/scheduler": path.resolve(packageRoot, "../scheduler/src/index.ts"),
     "@techbrief/shared": path.resolve(packageRoot, "../shared/src/index.ts"),
-    "@pubwave/cli": path.resolve(packageRoot, "../../../pubwave-cli/dist/index.js"),
     "react-devtools-core": path.resolve(packageRoot, "./src/shims/react-devtools-core.ts")
   },
   absWorkingDir: packageRoot,
@@ -30,6 +46,9 @@ await build({
   },
   entryPoints: {
     index: "./src/index.ts",
+    // The API server is bundled here (it self-starts on import, reading PORT/HOST
+    // from env) so the standalone CLI runs it without a downloaded workspace.
+    "bin/serve-api": path.resolve(repoRoot, "apps/server/src/index.ts"),
     "bin/serve-web": "./src/bin/serve-web.ts",
     "bin/serve-scheduler": "./src/bin/serve-scheduler.ts"
   },
@@ -39,7 +58,6 @@ await build({
     "react",
     "react/jsx-runtime",
     "react/jsx-dev-runtime",
-    "react-dom",
     "ink",
     "figlet"
   ],
@@ -47,9 +65,12 @@ await build({
   jsx: "automatic",
   outdir: distDir,
   platform: "node",
-  sourcemap: true,
+  sourcemap: false,
   target: "node20"
 });
+
+// Ship the prebuilt web client inside the package (served by dist/bin/serve-web.js).
+cpSync(webDistDir, path.join(distDir, "web"), { recursive: true });
 
 function normalizeEntry(entryPath) {
   const source = readFileSync(entryPath, "utf8");

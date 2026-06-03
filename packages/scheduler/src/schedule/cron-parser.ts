@@ -6,6 +6,11 @@ export interface ParsedCronExpression {
   dayOfMonth: number[];
   months: number[];
   dayOfWeek: number[];
+  // Standard cron treats day-of-month and day-of-week as OR when both are
+  // restricted (neither is "*"). Track whether each was a wildcard so the
+  // matcher can apply that rule. A leading "*" (including "*/n") is wildcard.
+  dayOfMonthRestricted: boolean;
+  dayOfWeekRestricted: boolean;
 }
 
 export function parseCronExpression(cron: string): ParsedCronExpression {
@@ -20,6 +25,8 @@ export function parseCronExpression(cron: string): ParsedCronExpression {
     hours: parseCronField(hour ?? "", { min: 0, max: 23 }),
     dayOfMonth: parseCronField(dayOfMonth ?? "", { min: 1, max: 31 }),
     months: parseCronField(month ?? "", { min: 1, max: 12 }),
-    dayOfWeek: parseCronField(dayOfWeek ?? "", { min: 0, max: 6 })
+    dayOfWeek: parseCronField(dayOfWeek ?? "", { min: 0, max: 6 }),
+    dayOfMonthRestricted: !(dayOfMonth ?? "*").startsWith("*"),
+    dayOfWeekRestricted: !(dayOfWeek ?? "*").startsWith("*")
   };
 }

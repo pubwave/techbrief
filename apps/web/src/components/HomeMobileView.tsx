@@ -13,6 +13,9 @@ interface HomeMobileViewProps {
   strings: Strings;
   items: FeedArticle[];
   total: number;
+  newCount?: number;
+  newIds?: Set<string>;
+  onDismissNew?: () => void;
   locale: Locale;
   hasMore?: boolean;
   isLoading?: boolean;
@@ -34,6 +37,9 @@ export function HomeMobileView({
   strings,
   items,
   total,
+  newCount = 0,
+  newIds,
+  onDismissNew,
   locale,
   hasMore = false,
   isLoading = false,
@@ -85,6 +91,9 @@ export function HomeMobileView({
       strings={strings}
       items={items}
       total={total}
+      newCount={newCount}
+      newIds={newIds}
+      onDismissNew={onDismissNew}
       locale={locale}
       onSelect={onOpenDetail}
       onSearchChange={onSearchChange}

@@ -37,6 +37,21 @@ function normalizeAiConfig(input: Partial<AppConfig> | undefined): AppConfig["ai
   };
 }
 
+function mergeSourceItems(
+  saved: AppConfig["sources"]["items"] | undefined
+): AppConfig["sources"]["items"] {
+  const defaults = DEFAULT_APP_CONFIG.sources.items;
+  const savedItems = saved ?? {};
+  const merged: AppConfig["sources"]["items"] = {};
+  for (const id of new Set([...Object.keys(defaults), ...Object.keys(savedItems)])) {
+    // Per-item merge (not whole-object overwrite) so a saved item that predates
+    // `priority` still inherits the default priority; the `priority: 0` floor
+    // covers custom sources saved before priorities existed.
+    merged[id] = { enabled: true, priority: 0, ...defaults[id], ...savedItems[id] };
+  }
+  return merged;
+}
+
 function mergeConfig(input: Partial<AppConfig> | undefined): AppConfig {
   if (!input) {
     return structuredClone(DEFAULT_APP_CONFIG);
@@ -51,35 +66,14 @@ function mergeConfig(input: Partial<AppConfig> | undefined): AppConfig {
     },
     schedule: {
       ...DEFAULT_APP_CONFIG.schedule,
-      ...input.schedule,
-      perSource: {
-        ...DEFAULT_APP_CONFIG.schedule.perSource,
-        ...input.schedule?.perSource
-      }
+      ...input.schedule
     },
     ai: {
       ...DEFAULT_APP_CONFIG.ai,
       ...normalizeAiConfig(input)
     },
     sources: {
-      ...DEFAULT_APP_CONFIG.sources,
-      ...input.sources,
-      techNews: {
-        ...DEFAULT_APP_CONFIG.sources.techNews,
-        ...input.sources?.techNews
-      },
-      indieDev: {
-        ...DEFAULT_APP_CONFIG.sources.indieDev,
-        ...input.sources?.indieDev
-      },
-      custom: {
-        ...DEFAULT_APP_CONFIG.sources.custom,
-        ...input.sources?.custom
-      }
-    },
-    web: {
-      ...DEFAULT_APP_CONFIG.web,
-      ...input.web
+      items: mergeSourceItems(input.sources?.items)
     },
     mobile: {
       ios: {

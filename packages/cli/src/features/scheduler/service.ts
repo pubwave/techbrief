@@ -1,14 +1,13 @@
-import { listAllSources, loadConfig, loadSchedulerRunState, setGlobalSchedule, setSourceSchedule } from "@techbrief/runtime";
+import { loadConfig, loadSchedulerRunState, setGlobalSchedule } from "@techbrief/runtime";
+import { DEFAULT_SCHEDULE_CRON, DEFAULT_SCHEDULE_INTERVAL_MINUTES, MIN_SCHEDULE_INTERVAL_MINUTES } from "@techbrief/shared";
 
 export async function loadSchedulerViewModel(): Promise<{
   mode: string;
-  intervalHours?: number;
+  intervalMinutes?: number;
   cron?: string;
-  timezone: string;
   globalLastRunAt?: string;
   globalLastStatus?: "success" | "failed";
   globalLastError?: string;
-  sourceOverrides: Array<{ sourceId: string; mode: string; intervalHours?: number; cron?: string }>;
   sourceStatuses: Array<{
     sourceId: string;
     lastRunAt?: string;
@@ -20,22 +19,10 @@ export async function loadSchedulerViewModel(): Promise<{
   }>;
   recentErrors: Array<{ runAt: string; message: string; sourceId?: string }>;
 }> {
-  const [config, state, sources] = await Promise.all([
+  const [config, state] = await Promise.all([
     loadConfig(),
-    loadSchedulerRunState(),
-    listAllSources()
+    loadSchedulerRunState()
   ]);
-
-  const sourceNameSet = new Set(sources.map((source) => source.id));
-  const sourceOverrides = Object.entries(config.schedule.perSource)
-    .filter(([sourceId]) => sourceNameSet.has(sourceId))
-    .map(([sourceId, policy]) => ({
-      sourceId,
-      mode: policy.mode,
-      ...(typeof policy.intervalHours === "number" ? { intervalHours: policy.intervalHours } : {}),
-      ...(typeof policy.cron === "string" ? { cron: policy.cron } : {})
-    }))
-    .sort((left, right) => left.sourceId.localeCompare(right.sourceId));
 
   const sourceStatuses = Object.entries(state.perSourceState)
     .map(([sourceId, sourceState]) => ({
@@ -46,13 +33,11 @@ export async function loadSchedulerViewModel(): Promise<{
 
   return {
     mode: config.schedule.mode,
-    ...(typeof config.schedule.intervalHours === "number" ? { intervalHours: config.schedule.intervalHours } : {}),
+    ...(typeof config.schedule.intervalMinutes === "number" ? { intervalMinutes: config.schedule.intervalMinutes } : {}),
     ...(typeof config.schedule.cron === "string" ? { cron: config.schedule.cron } : {}),
-    timezone: config.schedule.timezone,
     ...(state.globalLastRunAt ? { globalLastRunAt: state.globalLastRunAt } : {}),
     ...(state.globalLastStatus ? { globalLastStatus: state.globalLastStatus } : {}),
     ...(state.globalLastError ? { globalLastError: state.globalLastError } : {}),
-    sourceOverrides,
     sourceStatuses,
     recentErrors: state.recentErrors
   };
@@ -61,40 +46,17 @@ export async function loadSchedulerViewModel(): Promise<{
 export async function updateSchedulerPolicy(options: Record<string, string | boolean>): Promise<{
   updatedGlobal?: {
     mode: string;
-    intervalHours?: number;
-    cron?: string;
-    timezone: string;
-  };
-  updatedSource?: {
-    sourceId: string;
-    mode: "interval" | "cron";
-    intervalHours?: number;
+    intervalMinutes?: number;
     cron?: string;
   };
 }> {
   const mode = options.mode === "cron" ? "cron" : "interval";
-  const sourceId = typeof options.source === "string" ? options.source : undefined;
-  const sourcePolicy = mode === "cron"
-    ? { mode: "cron" as const, cron: String(options.cron ?? "0 */6 * * *") }
-    : { mode: "interval" as const, intervalHours: Number.parseInt(String(options.hours ?? "6"), 10) };
-
-  if (sourceId) {
-    await setSourceSchedule(sourceId, sourcePolicy);
-    return {
-      updatedSource: {
-        sourceId,
-        ...sourcePolicy
-      }
-    };
-  }
-
   const schedule = await setGlobalSchedule(buildGlobalSchedulePolicy(mode, options));
   return {
     updatedGlobal: {
       mode: schedule.mode,
-      ...(typeof schedule.intervalHours === "number" ? { intervalHours: schedule.intervalHours } : {}),
-      ...(typeof schedule.cron === "string" ? { cron: schedule.cron } : {}),
-      timezone: schedule.timezone
+      ...(typeof schedule.intervalMinutes === "number" ? { intervalMinutes: schedule.intervalMinutes } : {}),
+      ...(typeof schedule.cron === "string" ? { cron: schedule.cron } : {})
     }
   };
 }
@@ -104,21 +66,22 @@ function buildGlobalSchedulePolicy(
   options: Record<string, string | boolean>
 ): {
   mode: "interval" | "cron";
-  intervalHours?: number;
+  intervalMinutes?: number;
   cron?: string;
-  timezone?: string;
 } {
   if (mode === "interval") {
+    const rawMinutes = options["interval-minutes"] ?? options.minutes ?? DEFAULT_SCHEDULE_INTERVAL_MINUTES;
+    const parsedMinutes = Number.parseInt(String(rawMinutes), 10);
     return {
       mode: "interval",
-      intervalHours: Number.parseInt(String(options.hours ?? "6"), 10),
-      ...(typeof options.timezone === "string" ? { timezone: options.timezone } : {})
+      intervalMinutes: Number.isFinite(parsedMinutes)
+        ? Math.max(MIN_SCHEDULE_INTERVAL_MINUTES, parsedMinutes)
+        : DEFAULT_SCHEDULE_INTERVAL_MINUTES
     };
   }
 
   return {
     mode: "cron",
-    cron: String(options.cron ?? "0 */6 * * *"),
-    ...(typeof options.timezone === "string" ? { timezone: options.timezone } : {})
+    cron: String(options.cron ?? DEFAULT_SCHEDULE_CRON)
   };
 }

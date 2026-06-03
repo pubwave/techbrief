@@ -1,4 +1,5 @@
 import { runFeedSync } from "@techbrief/feed";
+import { DEFAULT_SCHEDULE_CRON, DEFAULT_SCHEDULE_INTERVAL_MINUTES } from "@techbrief/shared";
 import {
   isInitialSyncCompleteForConfig,
   listAllSources,
@@ -8,7 +9,7 @@ import {
   recordSchedulerSourceFailure,
   recordSchedulerTickFailure
 } from "@techbrief/runtime";
-import { isCronScheduleDue, isIntervalScheduleDue, resolveSourceSchedulePolicy } from "./policy.js";
+import { isCronScheduleDue, isIntervalScheduleDue, resolveSchedulePolicy } from "./policy.js";
 
 export interface SchedulerLogger {
   info?: (message: string) => void;
@@ -66,16 +67,16 @@ async function runSchedulerTick(
       return;
     }
 
-    const sources = (await listAllSources()).filter((source) => source.state === "builtin" || source.state === "active");
+    const sources = (await listAllSources()).filter((source) => source.state === "enabled");
     const state = await loadSchedulerRunState();
     const now = new Date();
+    const policy = resolveSchedulePolicy(config);
 
     for (const source of sources) {
-      const policy = resolveSourceSchedulePolicy(config, source.id);
       const lastRunAt = state.perSourceLastRunAt[source.id];
       const due = policy.mode === "cron"
-        ? isCronScheduleDue(lastRunAt, policy.cron ?? "0 */6 * * *", now)
-        : isIntervalScheduleDue(lastRunAt, policy.intervalHours ?? 6, now.getTime());
+        ? isCronScheduleDue(lastRunAt, policy.cron ?? DEFAULT_SCHEDULE_CRON, now)
+        : isIntervalScheduleDue(lastRunAt, policy.intervalMinutes ?? DEFAULT_SCHEDULE_INTERVAL_MINUTES, now.getTime());
 
       if (!due) {
         continue;

@@ -7,6 +7,7 @@ export interface OpenAiCompatibleProviderDefinition {
   availabilityDetail: string;
   probeUrl?: string;
   capabilities: ProviderCapabilities;
+  disableReasoning?: boolean;
 }
 
 export const OPENROUTER_PROVIDER_DEFINITION: OpenAiCompatibleProviderDefinition = {

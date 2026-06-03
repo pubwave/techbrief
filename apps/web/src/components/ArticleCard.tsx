@@ -1,9 +1,12 @@
 import type { Locale, Strings } from "../i18n/types";
+import { resolveArticleDisplayContent } from "../lib/article-display";
 import { formatRelativeTimestamp, getArticleTagLabels } from "../lib/format";
+import { estimateReadMinutes } from "../lib/reading-time";
 import type { FeedArticle } from "../types/feed";
-import type { CardStyle } from "./TweaksPanel";
+import type { CardStyle } from "./tweaks";
 import { BookOpenIcon, ClockIcon } from "./icons/ReaderIcons";
-import { SourceAvatar, getSourceColor } from "./SourceAvatar";
+import { getSourceColor } from "../lib/source-colors";
+import { SourceAvatar } from "./SourceAvatar";
 
 interface ArticleCardProps {
   article: FeedArticle;
@@ -12,12 +15,13 @@ interface ArticleCardProps {
   locale: Locale;
   strings: Strings;
   cardStyle?: CardStyle;
+  isNew?: boolean;
 }
 
 function estimateReadTime(article: FeedArticle, strings: Strings): string {
-  const text = article.bodyNormalized ?? article.summary ?? "";
-  const words = text.trim().split(/\s+/).filter(Boolean).length;
-  const minutes = Math.max(1, Math.round(words / 220));
+  const displayContent = resolveArticleDisplayContent(article);
+  const text = displayContent.bodyNormalized ?? displayContent.summary ?? "";
+  const minutes = estimateReadMinutes(text);
   return `${minutes} min${strings.home === "Home" && minutes !== 1 ? "s" : ""}`;
 }
 
@@ -27,12 +31,14 @@ export function ArticleCard({
   onSelect,
   locale,
   strings,
-  cardStyle = "compact"
+  cardStyle = "compact",
+  isNew = false
 }: ArticleCardProps) {
   const [channelLabel, sourceLabel] = getArticleTagLabels(article, strings);
+  const displayContent = resolveArticleDisplayContent(article);
   const relTime = formatRelativeTimestamp(article.publishedAt, locale);
   const readTime = estimateReadTime(article, strings);
-  const excerpt = article.summary ?? "";
+  const excerpt = displayContent.summary ?? "";
   const isComfortable = cardStyle === "comfortable";
   const isMagazine = cardStyle === "magazine";
   const sourceAccent = getSourceColor(article.sourceName);
@@ -79,6 +85,11 @@ export function ArticleCard({
           <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-tb-text-secondary">
             {article.sourceName}
           </span>
+          {isNew ? (
+            <span className="shrink-0 animate-pulse rounded-full bg-tb-accent px-[7px] py-[1px] text-[9px] font-bold uppercase tracking-[0.04em] text-tb-accent-ink">
+              New
+            </span>
+          ) : null}
           <span className="flex shrink-0 items-center gap-[4px] text-[11px] text-tb-text-muted">
             <ClockIcon size={11} />
             {relTime}
@@ -97,7 +108,7 @@ export function ArticleCard({
             WebkitBoxOrient: "vertical"
           }}
         >
-          {article.title}
+          {displayContent.title}
         </div>
 
         {(isComfortable || isMagazine) && excerpt ? (

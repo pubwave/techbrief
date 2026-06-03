@@ -1,4 +1,4 @@
-import { useAppRuntime } from "../app/AppRuntimeContext";
+import { useAppRuntime } from "../app/app-runtime";
 import techBriefAppIcon from "../assets/tech-brief-app-icon.svg";
 import type { Strings } from "../i18n/types";
 import { HomeIcon, SettingsIcon } from "./icons/ReaderIcons";

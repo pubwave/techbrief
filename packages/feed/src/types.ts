@@ -17,6 +17,7 @@ export interface RunFeedSyncInput {
   sourceIds?: string[];
   targetLanguage?: string;
   callbacks?: FeedSyncCallbacks;
+  shouldContinue?: () => Promise<boolean> | boolean;
 }
 
 export interface RunFeedSyncResult {

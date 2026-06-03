@@ -1,7 +1,5 @@
 import { SUPPORTED_LANGUAGES } from "@techbrief/shared";
-import { cloudModelChoices, cloudProviderChoices } from "../../../features/cloud-model/index.js";
 import type { ModelChoice } from "../../models/index.js";
-import { interpolateMobileDocLinks } from "./mobile-doc-links.js";
 import { WIZARD_LOCALE_CATALOGS } from "./locales/index.js";
 import type { FreshnessOptionKey, WizardLocale } from "./types.js";
 
@@ -48,39 +46,6 @@ export function localizedFreshnessChoices(locale: WizardLocale): ModelChoice[] {
       description: ""
     }))
   );
-}
-
-export function localizedMobileInstallChoices(locale: WizardLocale): ModelChoice[] {
-  const messages = WIZARD_LOCALE_CATALOGS[locale].messages;
-
-  return withLocalizedDescriptions(locale, [
-    { label: messages.mobileInstallSkip, value: "skip", description: "" },
-    { label: messages.mobileInstallNow, value: "install", description: "" }
-  ]).map((choice) => (
-    choice.value === "install"
-      ? {
-          ...choice,
-          description: interpolateMobileDocLinks(choice.description, locale)
-        }
-      : choice
-  ));
-}
-
-export function localizedMobilePlatformChoices(locale: WizardLocale): ModelChoice[] {
-  const messages = WIZARD_LOCALE_CATALOGS[locale].messages;
-
-  return withLocalizedDescriptions(locale, [
-    { label: messages.mobilePlatformAndroid, value: "android", description: "" },
-    { label: messages.mobilePlatformIos, value: "ios", description: "" }
-  ]);
-}
-
-export function localizedCloudProviderChoices(locale: WizardLocale): ModelChoice[] {
-  return withLocalizedDescriptions(locale, cloudProviderChoices(), { local: "local-provider" });
-}
-
-export function localizedCloudModelChoices(locale: WizardLocale, provider: string): ModelChoice[] {
-  return withLocalizedDescriptions(locale, cloudModelChoices(provider));
 }
 
 export function localizedLocalModelChoices(locale: WizardLocale, inputChoices?: ModelChoice[]): ModelChoice[] {

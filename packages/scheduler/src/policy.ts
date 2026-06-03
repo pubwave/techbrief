@@ -1,30 +1,29 @@
-import type { AppConfig } from "@techbrief/shared";
+import { DEFAULT_SCHEDULE_CRON, DEFAULT_SCHEDULE_INTERVAL_MINUTES, MIN_SCHEDULE_INTERVAL_MINUTES, type AppConfig } from "@techbrief/shared";
 import { getNextCronOccurrence, isValidCronExpression } from "./schedule/cron.js";
 
-export function resolveSourceSchedulePolicy(config: AppConfig, sourceId: string): {
+export function resolveSchedulePolicy(config: AppConfig): {
   mode: AppConfig["schedule"]["mode"];
-  intervalHours?: number;
+  intervalMinutes?: number;
   cron?: string;
-  timezone: string;
 } {
-  const sourcePolicy = config.schedule.perSource[sourceId];
   return {
-    mode: sourcePolicy?.mode ?? config.schedule.mode,
-    ...(sourcePolicy?.mode === "interval"
-      ? { intervalHours: sourcePolicy.intervalHours ?? config.schedule.intervalHours ?? 6 }
-      : config.schedule.mode === "interval"
-        ? { intervalHours: config.schedule.intervalHours ?? 6 }
-        : {}),
-    ...(sourcePolicy?.mode === "cron"
-      ? { cron: sourcePolicy.cron ?? config.schedule.cron ?? "0 */6 * * *" }
-      : config.schedule.mode === "cron"
-        ? { cron: config.schedule.cron ?? "0 */6 * * *" }
-        : {}),
-    timezone: config.schedule.timezone
+    mode: config.schedule.mode,
+    ...(config.schedule.mode === "interval"
+      ? { intervalMinutes: clampIntervalMinutes(config.schedule.intervalMinutes ?? DEFAULT_SCHEDULE_INTERVAL_MINUTES) }
+      : {}),
+    ...(config.schedule.mode === "cron" ? { cron: config.schedule.cron ?? DEFAULT_SCHEDULE_CRON } : {})
   };
 }
 
-export function isIntervalScheduleDue(lastRunAt: string | null | undefined, intervalHours: number, now = Date.now()): boolean {
+// Guard against 0/negative/NaN intervals, which would make a source perpetually
+// "due" and re-sync on every poll tick.
+export function clampIntervalMinutes(value: number): number {
+  return Number.isFinite(value) && value >= MIN_SCHEDULE_INTERVAL_MINUTES
+    ? Math.floor(value)
+    : MIN_SCHEDULE_INTERVAL_MINUTES;
+}
+
+export function isIntervalScheduleDue(lastRunAt: string | null | undefined, intervalMinutes: number, now = Date.now()): boolean {
   if (!lastRunAt) {
     return true;
   }
@@ -34,7 +33,7 @@ export function isIntervalScheduleDue(lastRunAt: string | null | undefined, inte
     return true;
   }
 
-  return now - lastRunMs >= intervalHours * 60 * 60 * 1000;
+  return now - lastRunMs >= intervalMinutes * 60 * 1000;
 }
 
 export function isCronScheduleDue(lastRunAt: string | null | undefined, cron: string, now = new Date()): boolean {

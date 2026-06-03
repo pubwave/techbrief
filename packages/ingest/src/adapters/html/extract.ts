@@ -1,5 +1,6 @@
-import { sanitizeArticleText, normalizeWhitespace } from "@techbrief/shared";
+import { sanitizeArticleText } from "@techbrief/shared";
 import { load, type CheerioAPI } from "cheerio";
+import { extractPublishedAtFromUrl, normalizePublishedAt } from "../shared/date-utils.js";
 
 function readSelectorContent($: CheerioAPI, selectors: string[]): string | undefined {
   for (const selector of selectors) {
@@ -34,38 +35,34 @@ export function extractAuthor(html: string, selectors: string[]): string | undef
   return readSelectorContent($, selectors);
 }
 
-export function extractPublishedAt(html: string, selectors: string[]): string {
-  const $ = load(html);
-  const value = readSelectorContent($, selectors);
-  const parsed = value ? Date.parse(value) : Number.NaN;
+function extractStructuredPublishedAt(html: string): string | undefined {
+  const matches = html.matchAll(
+    /\\?"(?:datePublished|dateCreated|dateModified|publishedAt|publishedOn|publishDate|firstPublishedAt)\\?"\s*:\s*\\?"([^"\\]+)\\?"/g
+  );
 
-  if (Number.isFinite(parsed)) {
-    return new Date(parsed).toISOString();
-  }
-
-  return new Date().toISOString();
-}
-
-export function extractBody(html: string, selectors: string[]): string | undefined {
-  const $ = load(html);
-  const paragraphs: string[] = [];
-
-  for (const selector of selectors) {
-    $(selector).each((_, element) => {
-      const text = sanitizeArticleText($(element).text());
-      if (text && !paragraphs.includes(text)) {
-        paragraphs.push(text);
-      }
-    });
-
-    if (paragraphs.length >= 6) {
-      break;
+  for (const match of matches) {
+    const parsed = normalizePublishedAt(match[1]);
+    if (parsed) {
+      return parsed;
     }
   }
 
-  if (paragraphs.length === 0) {
-    return undefined;
-  }
+  return undefined;
+}
 
-  return paragraphs.slice(0, 8).join("\n\n");
+export function extractPublishedAt(html: string, selectors: string[], originalUrl?: string): string | undefined {
+  const $ = load(html);
+  const value = readSelectorContent($, [
+    ...selectors,
+    "meta[property='article:published_time']",
+    "meta[property='og:published_time']",
+    "meta[name='article:published_time']",
+    "meta[name='date']",
+    "meta[name='publish_date']",
+    "meta[name='pubdate']",
+    "meta[itemprop='datePublished']",
+    "[itemprop='datePublished']"
+  ]);
+
+  return normalizePublishedAt(value) ?? extractStructuredPublishedAt(html) ?? (originalUrl ? extractPublishedAtFromUrl(originalUrl) : undefined);
 }

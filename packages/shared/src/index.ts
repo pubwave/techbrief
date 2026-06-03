@@ -1,5 +1,6 @@
 export * from "./article/types.js";
 export * from "./article/body.js";
+export * from "./article/body-completeness.js";
 export * from "./article/fingerprint.js";
 export * from "./ai/openai-models.js";
 export * from "./config/defaults.js";

@@ -8,7 +8,7 @@ export const OPENAI_MODEL_ORDER = [
   "gpt-5-nano",
   "gpt-4.1",
   "gpt-4.1-mini",
-  "o3-pro"
+  "gpt-4o-mini"
 ] as const;
 
 export type OpenAiModelValue = (typeof OPENAI_MODEL_ORDER)[number];

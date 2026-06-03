@@ -3,6 +3,7 @@ import type { AiOutput, AiProvider, HttpProviderOptions } from "../types.js";
 import { createParsedArticleAiOutput } from "./output.js";
 import { buildArticlePrompt, buildBodyTranslationPrompt, parseJsonObject } from "./prompt.js";
 import { responseIsEventStream, streamResponsesApiText } from "./stream-parser.js";
+import { AI_REQUEST_TIMEOUT_MS } from "./fetch-timeout.js";
 
 interface OpenAiResponse {
   output_text?: string;
@@ -50,7 +51,8 @@ export class OpenAiProvider implements AiProvider {
             type: "json_object"
           }
         }
-      })
+      }),
+      signal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS)
     });
 
     if (!response.ok) {

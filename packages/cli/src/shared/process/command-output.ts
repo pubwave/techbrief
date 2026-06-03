@@ -1,4 +1,5 @@
-const ANSI_PATTERN = /\u001B\[[0-9;?]*[ -/]*[@-~]/g;
+const ESCAPE_CHARACTER = String.fromCharCode(27);
+const ANSI_PATTERN = new RegExp(`${ESCAPE_CHARACTER}\\[[0-9;?]*[ -/]*[@-~]`, "g");
 
 export function normalizeCommandOutputLines(rawText: string): string[] {
   return rawText

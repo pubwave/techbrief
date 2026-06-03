@@ -1,6 +1,6 @@
 import path from "node:path";
 import { access, mkdir } from "node:fs/promises";
-import { formatCommand, runCommand, runCommandAsync } from "../paths/workspace.js";
+import { formatCommand, runCommandAsync } from "../paths/workspace.js";
 import { runtimeRoot as resolveCliRuntimeRoot } from "../paths/runtime-paths.js";
 import { prepareRuntimeWorkspace } from "./template.js";
 

@@ -1,6 +1,8 @@
 import { sanitizeArticleText, type FeedArticle, type SourceDefinition } from "@techbrief/shared";
 import { createArticleId, isFresh, sortByPublishedDate } from "../shared/article-utils.js";
 import type { ApiSourceRule } from "./types.js";
+import { normalizePublishedAt } from "../shared/date-utils.js";
+import { sourceFetchSignal } from "../shared/fetch-timeout.js";
 
 interface DevToArticle {
   id?: number;
@@ -36,12 +38,13 @@ function normalizeTagList(tagList: DevToArticle["tag_list"]): string[] {
 
 function mapDevToArticle(source: SourceDefinition, item: DevToArticle): FeedArticle | null {
   const title = sanitizeArticleText(item.title);
-  const originalUrl = sanitizeArticleText(item.canonical_url) ?? sanitizeArticleText(item.url);
+  const sourceUrl = sanitizeArticleText(item.url);
+  const originalUrl = sanitizeArticleText(item.canonical_url) ?? sourceUrl;
   const summary = sanitizeArticleText(item.description);
   const author = sanitizeArticleText(item.user?.name);
-  const publishedAtRaw = item.published_at ?? item.published_timestamp;
+  const publishedAt = normalizePublishedAt(item.published_at ?? item.published_timestamp);
 
-  if (!title || !originalUrl || !publishedAtRaw) {
+  if (!title || !originalUrl || !publishedAt) {
     return null;
   }
 
@@ -52,8 +55,9 @@ function mapDevToArticle(source: SourceDefinition, item: DevToArticle): FeedArti
     contentType: source.category,
     declaredContentType: source.category,
     title,
-    publishedAt: new Date(publishedAtRaw).toISOString(),
+    publishedAt,
     originalUrl,
+    ...(sourceUrl && sourceUrl !== originalUrl ? { sourceUrl } : {}),
     tags: normalizeTagList(item.tag_list),
     language: "en",
     ...(summary ? { summary } : {}),
@@ -75,7 +79,8 @@ export async function fetchDevToArticles(
     headers: {
       "user-agent": "TechBriefBot/0.1 (+https://github.com/pubwave/techbrief)",
       accept: "application/json"
-    }
+    },
+    signal: sourceFetchSignal()
   });
 
   if (!response.ok) {
