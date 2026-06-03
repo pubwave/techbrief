@@ -10,7 +10,7 @@
   "scripts": {
     "build": "npm run build -w @techbrief/shared && npm run build -w @techbrief/feed-rules && npm run build -w @techbrief/ingest && npm run build -w @techbrief/runtime && npm run build -w @techbrief/converter && npm run build -w @techbrief/summarizer && npm run build -w @techbrief/ai && npm run build -w @techbrief/pipeline && npm run build -w @techbrief/feed && npm run build -w @techbrief/scheduler && npm run build -w @techbrief/server && npm run build -w @techbrief/web && npm run build -w @techbrief/mobile-reader && cp apps/mobile-reader/dist/index.html apps/mobile/assets/reader/reader.html && npm run build -w @pubwave/techbrief",
     "build:mobile-reader": "npm run build -w @techbrief/mobile-reader && cp apps/mobile-reader/dist/index.html apps/mobile/assets/reader/reader.html",
-    "check": "npm run check --workspaces && npm run check:tests",
+    "check": "npm run check --workspaces --if-present && npm run check:tests",
     "check:tests": "tsc -p tsconfig.test.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
