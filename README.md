@@ -87,3 +87,10 @@ npm run dev:web      # web reader
 ```
 
 More detail lives in each package's folder under `apps/` and `packages/`.
+
+## Built with
+
+TechBrief is built on two sibling Pubwave projects:
+
+- [@pubwave/cli](https://github.com/pubwave/pubwave-cli) — the composable CLI toolkit powering the setup wizard and mobile install flow.
+- [@pubwave/editor](https://github.com/pubwave/pubwave-editor) — the rich-text editor that renders articles in the web and mobile readers.
