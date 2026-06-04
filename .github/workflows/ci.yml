@@ -3,40 +3,31 @@ name: CI
 on:
   push:
     branches: [main]
+    # Docs/asset-only changes don't affect the build or published package, so
+    # skip CI for them entirely.
+    paths-ignore:
+      - "**.md"
+      - "assets/**"
+      - "LICENSE"
+      - ".gitignore"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "assets/**"
+      - "LICENSE"
+      - ".gitignore"
+
+# Never run two CI passes for the same ref at once: queue them so a publish is
+# never raced (which previously caused duplicate npm provenance / 409 errors).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  verify:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npm run check
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Test
-        run: npm run test
-
-      - name: Build
-        run: npm run build
-
-  publish:
-    # Only publish from main (not on PRs), and only after verify passes.
-    needs: verify
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  # Single job: install + verify + (on main) publish. Verifying and publishing in
+  # one job means one `npm ci` and one workspace build instead of two.
+  ci:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -51,17 +42,35 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: npm
 
-      # Trusted publishing (OIDC) requires npm >= 11.5.1; Node 20 ships npm 10.x.
-      - name: Upgrade npm for trusted publishing
-        run: npm install -g npm@latest
-
       - name: Install dependencies
         run: npm ci
+
+      - name: Type check
+        run: npm run check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      # Builds the whole workspace (libs -> server -> web -> CLI). The CLI build
+      # bundles the API server and copies the prebuilt web client, so the
+      # published tarball is self-contained. Reused by the publish step below.
+      - name: Build
+        run: npm run build
+
+      # ---- Publish (only on a push to main) ----
+      # Trusted publishing (OIDC) requires npm >= 11.5.1; Node 20 ships npm 10.x.
+      - name: Upgrade npm for trusted publishing
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npm install -g npm@latest
 
       # Monorepo: the published package is the workspace @pubwave/techbrief
       # (packages/cli), not the private root package. Read its version directly.
       - name: Check if version already published
         id: check
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           NAME=$(node -p "require('./packages/cli/package.json').name")
           LOCAL=$(node -p "require('./packages/cli/package.json').version")
@@ -72,21 +81,12 @@ jobs:
           else
             echo "New version $LOCAL detected, will publish."
             echo "should_publish=true" >> "$GITHUB_OUTPUT"
-            echo "version=$LOCAL" >> "$GITHUB_OUTPUT"
           fi
 
-      # Builds the whole workspace (libs -> server -> web -> CLI). The CLI build
-      # bundles the API server and copies the prebuilt web client into the
-      # package, so the published tarball is self-contained.
-      - name: Build
-        if: steps.check.outputs.should_publish == 'true'
-        run: npm run build
-
-      # Authenticated via OIDC trusted publishing (no token). id-token:write lets
-      # npm exchange a short-lived GitHub OIDC token for publish rights, and
-      # provenance is attached automatically. Configure the trusted publisher for
-      # @pubwave/techbrief on npmjs (repo pubwave/techbrief, workflow ci.yml).
-      # Tagging + GitHub Release are handled by release.yml after CI succeeds.
+      # The package already built above; prepublishOnly rebuilds the self-
+      # contained CLI bundle. Authenticated via OIDC (no token); configure the
+      # trusted publisher for @pubwave/techbrief on npmjs (repo pubwave/techbrief,
+      # workflow ci.yml). Tagging + GitHub Release are handled by release.yml.
       - name: Publish to npm
-        if: steps.check.outputs.should_publish == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check.outputs.should_publish == 'true'
         run: npm publish -w @pubwave/techbrief --access public
