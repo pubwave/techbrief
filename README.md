@@ -1,12 +1,12 @@
 # TechBrief
 
 A multilingual reader for tech news and indie‑dev writing — every article gets a
-short summary, and AI translates it into your language.
+short summary, and AI translates it into the chosen language.
 
 TechBrief gathers articles from Hacker News, Dev.to, Hashnode and RSS feeds and
-gives each one a short summary. Pick your reading language: anything not already
-in it is translated by AI (reading in English needs no AI at all). Read it all
-in a clean web page or on your phone.
+gives each one a short summary. Pick a reading language; anything not already in
+it is translated by AI (reading in English needs no AI at all). Read it all in a
+clean web page or on a phone.
 
 <img src="https://raw.githubusercontent.com/pubwave/techbrief/main/assets/home/web-reader.png" alt="The TechBrief web reader" width="900">
 
@@ -26,30 +26,30 @@ Requires [Node.js 20 or newer](https://nodejs.org/).
    techbrief
    ```
 
-The first time you run it, a short setup guide asks a few questions (your
-language, and which AI to use). After that, TechBrief starts up and opens the
-reader in your browser automatically.
+On the first run, a short setup guide asks a few questions (language, and which
+AI to use). TechBrief then starts up and opens the reader in the browser
+automatically.
 
 <img src="https://raw.githubusercontent.com/pubwave/techbrief/main/assets/home/cli-setup.png" alt="First-run setup guide" width="900">
 
 That's it.
 
-## Choosing your AI
+## Choosing an AI
 
-Translation is done by AI (summaries are generated locally without it). During
-setup you pick which AI to use:
+Translation is done by AI (summaries are generated locally without it). The setup
+guide offers two options:
 
-- **Local** — runs on your own machine with [Ollama](https://ollama.com/). Free,
+- **Local** — runs on the same machine with [Ollama](https://ollama.com/). Free,
   private, no API key.
-- **Cloud** — uses a provider you already have a key for: OpenAI, Anthropic, or
+- **Cloud** — uses a provider with an existing key: OpenAI, Anthropic, or
   OpenRouter.
 
-You can change this any time by running the setup again.
+Run the setup again any time to change it.
 
-## Reading on your phone
+## Reading on mobile
 
-TechBrief has a mobile app (iOS and Android). With your phone connected to the
-same Wi‑Fi as your computer:
+TechBrief has a mobile app (iOS and Android). With the phone on the same Wi‑Fi as
+the computer running TechBrief:
 
 ```bash
 techbrief mobile run ios       # or: android
@@ -57,7 +57,7 @@ techbrief mobile run ios       # or: android
 
 <img src="https://raw.githubusercontent.com/pubwave/techbrief/main/assets/home/mobile-app.png" alt="The TechBrief mobile app" width="900">
 
-Once it's installed, just open the app and start reading.
+Once it's installed, open the app and start reading.
 
 ## Commands
 
@@ -71,7 +71,7 @@ Run `techbrief help` to see them all. The most common ones:
 | `techbrief down` | Stop TechBrief (shuts the background services down) |
 | `techbrief logs` | Show the background service logs |
 | `techbrief sync` | Fetch the latest articles now |
-| `techbrief setup` | Change your language or AI settings |
+| `techbrief setup` | Change the language or AI settings |
 | `techbrief doctor` | Check that everything is set up correctly |
 | `techbrief help` | List every command |
 | `techbrief version` | Show the CLI version |
@@ -147,7 +147,7 @@ Uninstall:
 npm uninstall -g @pubwave/techbrief
 ```
 
-This removes the command but keeps your settings and saved articles in
+This removes the command but keeps settings and saved articles in
 `~/.techbrief`. To wipe those too:
 
 ```bash
@@ -156,8 +156,8 @@ rm -rf ~/.techbrief
 
 ## Good to know
 
-- TechBrief runs entirely on your own computer. Your reading stays with you.
-- The app talks to your computer over your local Wi‑Fi, so keep both on the same
+- TechBrief runs entirely on the local computer; all reading data stays there.
+- The app talks to that computer over the local Wi‑Fi, so keep both on the same
   network.
 
 ## For developers
