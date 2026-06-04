@@ -61,7 +61,7 @@ Once it's installed, just open the app and start reading.
 
 ## Commands
 
-Run `techbrief help` to see them all. The ones you'll use most:
+Run `techbrief help` to see them all. The most common ones:
 
 | Command | What it does |
 | --- | --- |
@@ -79,25 +79,6 @@ Run `techbrief help` to see them all. The ones you'll use most:
 After running TechBrief, the API, web reader, and scheduler keep running in the
 background so syncing continues. Use `techbrief down` to stop them.
 
-**On your phone**
-
-| Command | What it does |
-| --- | --- |
-| `techbrief mobile run ios` | Build and run the app on iOS |
-| `techbrief mobile run android` | Build and run the app on Android |
-| `techbrief mobile install` | Check Flutter and install the app on a connected phone |
-| `techbrief mobile devices` | List connected Flutter devices |
-
-**Sources**
-
-| Command | What it does |
-| --- | --- |
-| `techbrief source list` | List configured feed sources |
-| `techbrief source add` | Add a custom feed source |
-| `techbrief source validate` | Validate a feed source URL |
-| `techbrief source enable` | Enable a feed source |
-| `techbrief source disable` | Disable a feed source |
-
 **AI model (local / Ollama)**
 
 | Command | What it does |
@@ -106,6 +87,15 @@ background so syncing continues. Use `techbrief down` to stop them.
 | `techbrief model local install` | Install a local model with Ollama |
 | `techbrief model local use` | Set a local model as the configured one |
 | `techbrief model local uninstall` | Remove a local model from Ollama |
+
+**Mobile**
+
+| Command | What it does |
+| --- | --- |
+| `techbrief mobile run ios` | Build and run the app on iOS |
+| `techbrief mobile run android` | Build and run the app on Android |
+| `techbrief mobile install` | Check Flutter and install the app on a connected phone |
+| `techbrief mobile devices` | List connected Flutter devices |
 
 **Schedule & config**
 
@@ -132,6 +122,16 @@ background so syncing continues. Use `techbrief down` to stop them.
 | `techbrief web up` | Bring up the dockerized web stack |
 | `techbrief web down` | Tear down the dockerized web stack |
 | `techbrief web logs` | Show dockerized web stack logs |
+
+**Sources**
+
+| Command | What it does |
+| --- | --- |
+| `techbrief source list` | List configured feed sources |
+| `techbrief source add` | Add a custom feed source |
+| `techbrief source validate` | Validate a feed source URL |
+| `techbrief source enable` | Enable a feed source |
+| `techbrief source disable` | Disable a feed source |
 
 ## Update & uninstall
 
