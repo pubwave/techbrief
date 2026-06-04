@@ -2,7 +2,7 @@
   "name": "@pubwave/techbrief",
   "version": "0.1.2",
   "private": false,
-  "description": "Read global tech news and indie-dev writing with AI summaries and translation — runs on your own machine.",
+  "description": "A multilingual reader for tech news and indie-dev writing — AI summaries and translation, all on the local machine.",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
