@@ -3,7 +3,7 @@
 A multilingual reader for tech news and indie‑dev writing — every article gets a
 short summary, and AI translates it into the chosen language.
 
-TechBrief gathers articles from Hacker News, Dev.to, Hashnode and RSS feeds and
+TechBrief gathers articles from a curated set of tech sources and RSS feeds and
 gives each one a short summary. Pick a reading language; anything not already in
 it is translated by AI (reading in English needs no AI at all). Read it all in a
 clean web page or on a phone.
