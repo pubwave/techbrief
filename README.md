@@ -59,15 +59,79 @@ techbrief mobile run ios       # or: android
 
 Once it's installed, just open the app and start reading.
 
-## Everyday commands
+## Commands
+
+Run `techbrief help` to see them all. The ones you'll use most:
 
 | Command | What it does |
 | --- | --- |
 | `techbrief` | Start everything and open the reader |
-| `techbrief setup` | Change your language or AI settings |
+| `techbrief launch` | Same as above — launch the runtime |
+| `techbrief status` | Show what's running (API, web, scheduler) |
+| `techbrief down` | Stop TechBrief (shuts the background services down) |
+| `techbrief logs` | Show the background service logs |
 | `techbrief sync` | Fetch the latest articles now |
-| `techbrief source list` | See where articles come from |
+| `techbrief setup` | Change your language or AI settings |
 | `techbrief doctor` | Check that everything is set up correctly |
+| `techbrief help` | List every command |
+| `techbrief version` | Show the CLI version |
+
+After running TechBrief, the API, web reader, and scheduler keep running in the
+background so syncing continues. Use `techbrief down` to stop them.
+
+**On your phone**
+
+| Command | What it does |
+| --- | --- |
+| `techbrief mobile run ios` | Build and run the app on iOS |
+| `techbrief mobile run android` | Build and run the app on Android |
+| `techbrief mobile install` | Check Flutter and install the app on a connected phone |
+| `techbrief mobile devices` | List connected Flutter devices |
+
+**Sources**
+
+| Command | What it does |
+| --- | --- |
+| `techbrief source list` | List configured feed sources |
+| `techbrief source add` | Add a custom feed source |
+| `techbrief source validate` | Validate a feed source URL |
+| `techbrief source enable` | Enable a feed source |
+| `techbrief source disable` | Disable a feed source |
+
+**AI model (local / Ollama)**
+
+| Command | What it does |
+| --- | --- |
+| `techbrief model local list` | List installed local models |
+| `techbrief model local install` | Install a local model with Ollama |
+| `techbrief model local use` | Set a local model as the configured one |
+| `techbrief model local uninstall` | Remove a local model from Ollama |
+
+**Schedule & config**
+
+| Command | What it does |
+| --- | --- |
+| `techbrief schedule get` | Show the sync schedule |
+| `techbrief schedule set` | Update the sync schedule |
+| `techbrief config get` | Show the current configuration |
+| `techbrief config set` | Update configuration (language, model, days…) |
+| `techbrief init` | Initialize config non-interactively (flag-driven) |
+
+**Setup & maintenance**
+
+| Command | What it does |
+| --- | --- |
+| `techbrief install` | Install npm dependencies and the Flutter mobile project |
+| `techbrief build` | Build the web bundle and run Flutter static checks |
+| `techbrief up` | Hint for how to start the runtime |
+
+**Dockerized web stack**
+
+| Command | What it does |
+| --- | --- |
+| `techbrief web up` | Bring up the dockerized web stack |
+| `techbrief web down` | Tear down the dockerized web stack |
+| `techbrief web logs` | Show dockerized web stack logs |
 
 ## Update & uninstall
 
