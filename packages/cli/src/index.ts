@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createPubwaveCli, localProjectDir, type MobileWorkspaceProvider } from "@pubwave/cli";
-import type { AppConfig } from "@techbrief/shared";
+import { requiresAiForLanguage, type AppConfig } from "@techbrief/shared";
 import { resolveCliAppHome } from "./shared/paths/app-home.js";
 import { mobileAppRoot, resolveDevelopmentWorkspaceRoot } from "./shared/paths/workspace.js";
 import { pubwaveCliConfig } from "./pubwave-cli-config.js";
@@ -47,7 +47,7 @@ const cli = createPubwaveCli<AppConfig>({
     setup: {
       customSteps: techbriefCustomSteps,
       stages: techbriefStages,
-      shouldRequireAiSetup: ({ state }) => state.language !== "en",
+      shouldRequireAiSetup: ({ state }) => requiresAiForLanguage(state.language),
       // Full techbrief config rows, shown on BOTH the saved view and the
       // post-setup completion screen (declared once here).
       configRows: techbriefAdditionalRows

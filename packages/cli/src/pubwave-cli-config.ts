@@ -8,7 +8,7 @@ function toCliConfig(config: AppConfig): PubwaveCliConfig {
   return {
     language: config.app.defaultLanguage,
     ai: {
-      modelSource: config.ai.modelSource,
+      ...(config.ai.modelSource ? { modelSource: config.ai.modelSource } : {}),
       provider: config.ai.provider,
       model: config.ai.model,
       apiKey: config.ai.apiKey
@@ -27,8 +27,12 @@ function fromCliConfig(cli: PubwaveCliConfig, current: AppConfig): AppConfigPart
   }
 
   if (cli.ai) {
+    // When the wizard cleared AI (no provider/model — a no-AI language), reset
+    // modelSource to "" so the stored "cloud"/"local" doesn't linger; deep merge
+    // can't drop a key, so we overwrite it with an empty value.
+    const cleared = !cli.ai.provider && !cli.ai.model;
     next.ai = {
-      modelSource: cli.ai.modelSource ?? current.ai.modelSource,
+      modelSource: cleared ? "" : (cli.ai.modelSource ?? current.ai.modelSource),
       provider: cli.ai.provider ?? current.ai.provider,
       model: cli.ai.model ?? current.ai.model,
       apiKey: cli.ai.apiKey ?? current.ai.apiKey
@@ -85,7 +89,11 @@ function validate(config: AppConfig): void {
   if (days !== 1 && days !== 3 && days !== 5 && days !== 7) {
     throw new Error(`Invalid app.freshnessDays: ${String(days)} (allowed: 1, 3, 5, 7)`);
   }
-  if (config.ai.modelSource !== "cloud" && config.ai.modelSource !== "local") {
+  if (
+    config.ai.modelSource !== ""
+    && config.ai.modelSource !== "cloud"
+    && config.ai.modelSource !== "local"
+  ) {
     throw new Error(`Invalid ai.modelSource: ${String(config.ai.modelSource)}`);
   }
 }
@@ -109,14 +117,7 @@ export const pubwaveCliConfig: CliConfigFactory<AppConfig> = (context) => {
       if (!existsSync(filePath)) {
         return {};
       }
-      const cli = toCliConfig(projectConfig);
-      // English needs no AI (no translation), so don't surface the cloud/openai
-      // defaults in the setup review — they look configured but go unused.
-      if (projectConfig.app.defaultLanguage === "en") {
-        const { ai: _ai, ...rest } = cli;
-        return rest;
-      }
-      return cli;
+      return toCliConfig(projectConfig);
     }
   };
 };

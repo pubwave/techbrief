@@ -1,7 +1,10 @@
 import type { SchedulePolicy } from "../content/types.js";
 
 export interface AiConfig {
-  modelSource: "cloud" | "local";
+  // "" means "not configured yet" (e.g. an English reader that never needs AI).
+  // The setup wizard sets "cloud"/"local" when a translation language is chosen.
+  // Code that branches on it must treat "" as "not local".
+  modelSource: "cloud" | "local" | "";
   provider: string;
   model: string;
   apiKey: string;

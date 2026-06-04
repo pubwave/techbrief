@@ -5,14 +5,14 @@ short summary, and AI translates it into your language.
 
 TechBrief gathers articles from Hacker News, Dev.to, Hashnode and RSS feeds and
 gives each one a short summary. Pick your reading language: anything not already
-in it is translated by AI (reading in English needs no AI at all). You read it
-all in a clean web page or on your phone.
+in it is translated by AI (reading in English needs no AI at all). Read it all
+in a clean web page or on your phone.
 
 <img src="https://raw.githubusercontent.com/pubwave/techbrief/main/assets/home/web-reader.png" alt="The TechBrief web reader" width="900">
 
 ## Get started
 
-You need [Node.js 20 or newer](https://nodejs.org/).
+Requires [Node.js 20 or newer](https://nodejs.org/).
 
 1. Install:
 
@@ -68,6 +68,27 @@ Once it's installed, just open the app and start reading.
 | `techbrief sync` | Fetch the latest articles now |
 | `techbrief source list` | See where articles come from |
 | `techbrief doctor` | Check that everything is set up correctly |
+
+## Update & uninstall
+
+Update to the latest version:
+
+```bash
+npm install -g @pubwave/techbrief@latest
+```
+
+Uninstall:
+
+```bash
+npm uninstall -g @pubwave/techbrief
+```
+
+This removes the command but keeps your settings and saved articles in
+`~/.techbrief`. To wipe those too:
+
+```bash
+rm -rf ~/.techbrief
+```
 
 ## Good to know
 

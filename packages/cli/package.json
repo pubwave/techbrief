@@ -1,6 +1,6 @@
 {
   "name": "@pubwave/techbrief",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "description": "Read global tech news and indie-dev writing with AI summaries and translation — runs on your own machine.",
   "license": "MIT",
@@ -53,7 +53,7 @@
     "react": "^19.2.6"
   },
   "devDependencies": {
-    "@pubwave/cli": "^0.1.4",
+    "@pubwave/cli": "^0.1.7",
     "@techbrief/ai": "0.1.0",
     "@techbrief/converter": "0.1.0",
     "@techbrief/feed": "0.1.0",

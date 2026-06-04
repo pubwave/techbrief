@@ -4,7 +4,10 @@ import { getAppStateDir, loadConfig, saveConfig, updateConfig } from "@techbrief
 import { createLine, createSection } from "../../shared/ui/ui.js";
 import { workspaceRoot } from "../../shared/paths/workspace.js";
 
-function inferModelSource(provider: string | undefined, current: "cloud" | "local"): "cloud" | "local" {
+function inferModelSource(
+  provider: string | undefined,
+  current: "cloud" | "local" | ""
+): "cloud" | "local" | "" {
   if (!provider) {
     return current;
   }
@@ -16,14 +19,29 @@ function defaultCloudModel(provider: string): string | undefined {
   return defaultCloudModelProviders.find((entry) => entry.value === provider)?.models[0]?.value;
 }
 
+// AI is "configured" only once a provider and model are chosen; otherwise show
+// every AI row as "Not configured" (matches the setup/saved views).
+function aiDisplayRows(ai: { modelSource?: string; provider: string; model: string }): {
+  source: string;
+  provider: string;
+  model: string;
+} {
+  const notConfigured = "Not configured";
+  if (!ai.provider || !ai.model) {
+    return { source: notConfigured, provider: notConfigured, model: notConfigured };
+  }
+  return { source: ai.modelSource ?? notConfigured, provider: ai.provider, model: ai.model };
+}
+
 export async function configGetView(): Promise<React.ReactElement> {
   const config = await loadConfig();
 
+  const ai = aiDisplayRows(config.ai);
   return createSection("Config", [
     createLine(`Default language: ${config.app.defaultLanguage}`),
-    createLine(`Model source: ${config.ai.modelSource}`),
-    createLine(`AI provider: ${config.ai.provider}`),
-    createLine(`AI model: ${config.ai.model}`),
+    createLine(`Model source: ${ai.source}`),
+    createLine(`AI provider: ${ai.provider}`),
+    createLine(`AI model: ${ai.model}`),
     createLine(`Freshness days: ${config.app.freshnessDays}`),
     createLine(`Schedule mode: ${config.schedule.mode}`)
   ]);
@@ -91,11 +109,12 @@ export async function configSetView(options: Record<string, string | boolean>): 
     localInstallMessage = installResult.detail;
   }
 
+  const aiUpdated = aiDisplayRows(config.ai);
   return createSection("Config Updated", [
     createLine(`Default language: ${config.app.defaultLanguage}`, "green"),
-    createLine(`Model source: ${config.ai.modelSource}`, "green"),
-    createLine(`AI provider: ${config.ai.provider}`, "green"),
-    createLine(`AI model: ${config.ai.model}`, "cyan"),
+    createLine(`Model source: ${aiUpdated.source}`, "green"),
+    createLine(`AI provider: ${aiUpdated.provider}`, "green"),
+    createLine(`AI model: ${aiUpdated.model}`, "cyan"),
     createLine(`Freshness days: ${config.app.freshnessDays}`, "cyan"),
     ...(localInstallMessage ? [createLine(localInstallMessage, localInstallOk ? "green" : "yellow")] : [])
   ]);
@@ -125,7 +144,7 @@ export async function initView(options: Record<string, string | boolean>): Promi
     },
     ai: {
       ...config.ai,
-      modelSource: nextModelSource,
+      ...(nextModelSource ? { modelSource: nextModelSource } : {}),
       provider: nextProvider,
       model: nextModel,
       apiKey: nextModelSource === "local" ? "" : nextApiKey
@@ -134,12 +153,13 @@ export async function initView(options: Record<string, string | boolean>): Promi
 
   await saveConfig(nextConfig);
 
+  const aiInit = aiDisplayRows(nextConfig.ai);
   return createSection("Init", [
     createLine(`Workspace: ${workspaceRoot}`),
     createLine(`Default language: ${nextConfig.app.defaultLanguage}`, "green"),
-    createLine(`Model source: ${nextConfig.ai.modelSource}`, "green"),
-    createLine(`AI provider: ${nextConfig.ai.provider}`, "green"),
-    createLine(`AI model: ${nextConfig.ai.model}`, "cyan"),
+    createLine(`Model source: ${aiInit.source}`, "green"),
+    createLine(`AI provider: ${aiInit.provider}`, "green"),
+    createLine(`AI model: ${aiInit.model}`, "cyan"),
     createLine(`Freshness days: ${nextConfig.app.freshnessDays}`, "cyan"),
     createLine(`Config has been written to ${getAppStateDir()}/config.json`, "yellow")
   ]);

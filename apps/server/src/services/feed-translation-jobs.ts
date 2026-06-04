@@ -137,7 +137,7 @@ async function configureTranslationQueue(): Promise<void> {
   setTranslationQueueConcurrency(resolveQueueConcurrency(config.ai));
 }
 
-function resolveQueueConcurrency(ai: { modelSource: string; provider: string }): number {
+function resolveQueueConcurrency(ai: { modelSource?: string; provider: string }): number {
   if (ai.modelSource === "local" || ai.provider === "local") {
     return 2;
   }

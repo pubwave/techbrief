@@ -1,5 +1,4 @@
 import type { AppConfig } from "./types.js";
-import { DEFAULT_OPENAI_MODEL } from "../ai/openai-models.js";
 import { DEFAULT_SOURCES } from "../source/default-sources.js";
 
 export const DEFAULT_SCHEDULE_INTERVAL_MINUTES = 15;
@@ -25,9 +24,12 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
     intervalMinutes: DEFAULT_SCHEDULE_INTERVAL_MINUTES
   },
   ai: {
-    modelSource: "cloud",
-    provider: "openai",
-    model: DEFAULT_OPENAI_MODEL,
+    // Unconfigured by default ("" = not set). The setup wizard fills these when a
+    // non-English reading language needs AI translation; English never uses AI,
+    // so nothing is pre-selected and the UI shows "not configured".
+    modelSource: "",
+    provider: "",
+    model: "",
     apiKey: ""
   },
   sources: {
