@@ -109,7 +109,14 @@ export const pubwaveCliConfig: CliConfigFactory<AppConfig> = (context) => {
       if (!existsSync(filePath)) {
         return {};
       }
-      return toCliConfig(projectConfig);
+      const cli = toCliConfig(projectConfig);
+      // English needs no AI (no translation), so don't surface the cloud/openai
+      // defaults in the setup review — they look configured but go unused.
+      if (projectConfig.app.defaultLanguage === "en") {
+        const { ai: _ai, ...rest } = cli;
+        return rest;
+      }
+      return cli;
     }
   };
 };
